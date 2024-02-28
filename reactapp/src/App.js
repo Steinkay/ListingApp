@@ -31,10 +31,10 @@ function App() {
   );
 };
 
-function HomePage({ listings }) {
+function HomePage({ listings, setAuthenticated }) {
   return (
     <>
-      <Menue />
+      <Menue setAuthenticated={setAuthenticated} />
       <FeedContainer listings={listings} />
     </>
   );
@@ -59,15 +59,14 @@ function Menue({setAuthenticated }) {
 
 
   const handleLogout = () => {
-    // Clear authentication status
     setAuthenticated(false);
-
-    // Remove session token from localStorage
+  
     localStorage.removeItem('sessionToken');
+    console.log('Session token removed from localStorage');
+  
+    navigate('/login');
+  };
 
-    // Navigate to the login page (replace '/login' with your login route)
-    navigate('localhost:3000/login');
-  };;
   return (
     <div id='MenueContainer'>
            {showMenu && (
