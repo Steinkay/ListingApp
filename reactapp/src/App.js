@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import './App.css';
+import axios from 'axios';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
@@ -370,23 +371,22 @@ function Login_SigUp({ setAuthenticated }) {
     password: '',
   });
 
-  const [agents, setAgents] = useState([]);
+  const [Users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchAgents = async () => {
+    const fetchUsers = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/agents');
-        setAgents(response.data);
-        console.log('Agents:', response.data);
+        const response = await axios.get('http://localhost:8080/Users');
+        setUsers(response.data);
+        console.log('Users:', response.data);
       } catch (error) {
-        console.error('Error fetching agents:', error);
-        setError('Error fetching agents. Please try again.');
+     
       }
     };
   
-    fetchAgents();
+    fetchUsers();
   }, []); 
 
   const handleLoginSubmit = async (event) => {
@@ -394,12 +394,12 @@ function Login_SigUp({ setAuthenticated }) {
   
     try {
       if (loading) {
-        setError('Fetching agents data. Please wait.');
+        setError('Fetching Users data. Please wait.');
         return;
       }
  
   
-      const matchingAgent = agents.find(
+      const matchingAgent = Users.find(
         (agent) =>
           agent.Email.trim().toLowerCase() === credentials.email.trim().toLowerCase() &&
           agent.Password === credentials.password

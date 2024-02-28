@@ -8,6 +8,8 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
+use Illuminate\Database\Capsule\Manager as Capsule;
+
 
 return function (App $app) {
     $app->options('/{routes:.*}', function (Request $request, Response $response) {
@@ -15,10 +17,26 @@ return function (App $app) {
         return $response;
     });
 
+  
+
     $app->get('/', function (Request $request, Response $response) {
-        $response->getBody()->write('Hello world!');
+        $response->getBody()->write('Stein Kayuni');
         return $response;
     });
+
+    
+    $app->get('/agents', function (Request $request, Response $response) {
+        // Get the Capsule instance from the container
+        $capsule = $this->get(\Illuminate\Database\Capsule\Manager::class);
+    
+        // Fetch agents from the 'agents' table
+        $agents = $capsule->table('agents')->get();
+    
+        // Convert agents to JSON and send the response
+        $response->getBody()->write(json_encode($agents));
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+    
 
     $app->group('/users', function (Group $group) {
         $group->get('', ListUsersAction::class);
