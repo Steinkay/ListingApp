@@ -166,15 +166,16 @@ function FeedContainer() {
 
   const handlePostListingLocal = () => {
     const newListing = {
+      propertyType: document.getElementById('PropertyType').value,
       description: listingDescription,
       images: uploadedImages,
     };
 
     handlePostListing(newListing);
 
-    setUploadedImages([]);
-    setListingDescription('');
-    setShowCreateListing(false);
+  setUploadedImages([]);
+  setListingDescription('');
+  setShowCreateListing(false);
   };
 
   return (
@@ -197,6 +198,13 @@ function FeedContainer() {
         <select id='PropertyType' style={{marginLeft:'2%'}}>
           <option>Residential</option>
           <option>Commercial</option>
+        </select>
+        <select>
+          <option>Mzuze</option>
+          <option>Lilongwe</option>
+          <option>Salima</option>
+          <option>Mangochi</option>
+          <option>Blantyre</option>
         </select>
       </div>
       <div id='ListingDescriptionAndImagesDiv'>
@@ -265,6 +273,7 @@ function ListingContainer({ listing }) {
           <div className='ListingPosterName'></div>
           <div className='ListingPostDate'></div>
         </div>
+        <div id='ListingType'></div>
       </div>
       <div className='ListingPicturesDiv' style={{ marginTop: '1%' }}>
         {listing.images.map((imageUrl, index) => (
