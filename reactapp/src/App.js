@@ -1,6 +1,8 @@
 
 import React, { useEffect, useState } from 'react';
 import './App.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 function App() {
   const [authenticated, setAuthenticated] = useState(/* initial authentication state */);
@@ -27,6 +29,16 @@ function App() {
     </Router>
   );
 };
+
+function HomePage({ listings }) {
+  return (
+    <>
+      <Menue />
+      <FeedContainer listings={listings} />
+    </>
+  );
+}
+
 
 
 function Menue({setAuthenticated }) {
@@ -351,3 +363,102 @@ function ListingContainer({ listing }) {
     </div>
   );
 }
+
+function Login_SigUp({ setAuthenticated }) {
+  const [credentials, setCredentials] = useState({
+    email: '',
+    password: '',
+  });
+
+  const [agents, setAgents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchAgents = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/agents');
+        setAgents(response.data);
+        console.log('Agents:', response.data);
+      } catch (error) {
+        console.error('Error fetching agents:', error);
+        setError('Error fetching agents. Please try again.');
+      }
+    };
+  
+    fetchAgents();
+  }, []); 
+
+  const handleLoginSubmit = async (event) => {
+    event.preventDefault();
+  
+    try {
+      if (loading) {
+        setError('Fetching agents data. Please wait.');
+        return;
+      }
+ 
+  
+      const matchingAgent = agents.find(
+        (agent) =>
+          agent.Email.trim().toLowerCase() === credentials.email.trim().toLowerCase() &&
+          agent.Password === credentials.password
+      );
+    
+  
+      if (matchingAgent) {
+        setAuthenticated(true);
+  
+        localStorage.setItem('sessionToken', matchingAgent.sessionToken);
+  
+        setError(null);
+  
+        window.location.href = 'http://localhost:3000/listingfeed';
+      } else {
+        setError('Please review your login credentials');
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+      setError('An error occurred during login');
+    }
+  };
+
+  return (
+    <div className='form-container' style={{ backgroundColor: '#e1e4eb', width: '30%', marginLeft: '35%', marginTop: '10%' }}>
+      <form className='login-form' style={{ marginLeft: '2%' }} onSubmit={handleLoginSubmit}>
+        <h2>Login</h2>
+        {error && (
+          <div id='ValidationErrorText' style={{ color: 'red', marginBottom: '10px' }}>
+            {error}
+          </div>
+        )}
+        <div style={{ marginTop: '2%' }}>
+          <label>Email:</label>
+          <input
+            style={{ marginLeft: '6%', width: '60%' }}
+            type='email'
+            placeholder='Enter your email'
+            value={credentials.email}
+            onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
+          />
+        </div>
+        <div style={{ marginTop: '2%' }}>
+          <label>Password: </label>
+          <input
+            type='password'
+            placeholder='Enter your password'
+            style={{ width: '60%' }}
+            value={credentials.password}
+            onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+          />
+        </div>
+        <button style={{ marginTop: '2%' }} type='submit' disabled={loading}>
+          {loading ? 'Please wait...' : 'Login'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+
+export default App;
