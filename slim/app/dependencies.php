@@ -9,6 +9,8 @@ use Monolog\Logger;
 use Monolog\Processor\UidProcessor;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Illuminate\Database\Capsule\Manager as Capsule;
+use Tuupola\Middleware\CorsMiddleware;
 
 return function (ContainerBuilder $containerBuilder) {
     $containerBuilder->addDefinitions([
@@ -25,6 +27,41 @@ return function (ContainerBuilder $containerBuilder) {
             $logger->pushHandler($handler);
 
             return $logger;
+        },
+
+        Capsule::class => function (ContainerInterface $c) {
+            $capsule = new Capsule;
+
+            // Retrieve database settings from the Slim settings
+            $settings = $c->get(SettingsInterface::class);
+            $databaseSettings = $settings->get('database');
+
+            $capsule->addConnection([
+                'driver' => 'mysql',
+                'host' => $databaseSettings['host'],
+                'database' => $databaseSettings['database'],
+                'username' => $databaseSettings['username'],
+                'password' => $databaseSettings['password'],
+                'charset' => 'utf8',
+                'collation' => 'utf8_unicode_ci',
+                'prefix' => '',
+            ]);
+
+            $capsule->setAsGlobal();
+            $capsule->bootEloquent();
+
+            return $capsule;
+        },
+        
+        'cors' => function ($container) {
+            return new CorsMiddleware([
+                'origin' => ['http://localhost:3000'],  // Adjust the origin based on your React app's URL
+                'methods' => ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'],
+                'headers.allow' => ['Authorization', 'Content-Type'],
+                'headers.expose' => [],
+                'credentials' => true,
+                'cache' => 0,
+            ]);
         },
     ]);
 };
