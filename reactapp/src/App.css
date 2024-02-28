@@ -1,0 +1,113 @@
+body{
+  color: rgb(67, 65, 65);
+}
+#CompanyLogo{
+  margin-left: 200px;
+  cursor: pointer;
+}
+#CompanyLogo img{
+  padding-top: 26px;
+
+}
+#MenueContainer{
+position: fixed;
+display: flex;
+height: 10%;
+min-width:10%;
+max-width: 110%;
+width: 120%;
+background-color: rgb(132, 173, 220);
+margin-left: -50px;
+margin-top: -100px;
+}
+#MenueSection{
+display: flex;
+width: fit-content;
+}
+ul{
+  margin-left:20px ;
+  display: flex;
+  list-style-type: none;
+}
+ul a{
+  text-decoration: none;
+  color: rgb(75, 74, 74);
+  padding: 10px;
+  margin-left: 10px;
+}
+ul a:hover{
+  color: rgb(61, 158, 242);
+}
+ul a li{
+
+  margin-left: 10px;
+  cursor: pointer;
+}
+#SearchIconDiv{
+margin-left: 300px;
+width: 50px;
+height: 40px;
+}
+#SearchIconDiv img{
+  padding-top: 26px;
+  cursor:pointer;
+  width: 20px;
+  height: 20px;
+
+}
+
+#SearchInputDiv{
+  display: flex;
+background-color: rgb(249, 249, 249);
+width: 103%;
+margin-left: -8px;
+  height: 70px;
+  top: 4%;
+  z-index:2;
+border-bottom: 2px solid gainsboro;
+}
+#SearchInput{
+ margin-left: 30%;
+ width: 35%;
+ height: 35px;
+ border-radius: 10px;
+ margin-top: 18px;
+ border:0.5px solid #cbc6c6;
+ background-color: #e8e8e8;
+ outline: 0.5px solid #cbc6c6 ;
+}
+#InputSearchIcon{
+margin-top: 26px;
+margin-left: -30px;
+cursor: pointer;
+}
+#SearchInputCloseIcon{
+  margin-top: 18px;
+  margin-left: 40px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 5px;
+}
+#SearchInputCloseIcon:hover{
+  background-color: #e8e8e8;
+}
+
+a{
+  text-decoration: none;
+}
+
+
+#MenuUserDiv{
+  min-width: 20%;
+  max-width: 30%;
+  margin-top: 2.5%;
+  margin-left: 20%;
+}
+
+#MenuUserDiv div:hover{
+cursor: pointer;
+background-color: #ffffff;
+border-radius: 2px;
+width: fit-content;
+height: fit-content;
+}
