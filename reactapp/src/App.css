@@ -232,6 +232,16 @@ cursor: pointer;
   display: flex;
   column-gap: 15px;
 }
+.ListingLocationLabel{
+margin-top: 4%;
+margin-left: 20%;
+}
+.ListingLocation{
+  margin-top: 4%;
+  margin-left: 20%;
+  display: flex;
+}
+
 .ListingPosterLogo_Picture{
   margin-left: 5px;
   margin-top: 10px;

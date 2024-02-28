@@ -146,6 +146,9 @@ function FeedContainer() {
   function CreateListingContainer() {
   const [uploadedImages, setUploadedImages] = useState([]);
   const [listingDescription, setListingDescription] = useState('');
+  const [listingLocation, setlistingLocation] = useState('');
+  const [listingType, setlistingType] = useState('');
+
 
   const handleCreateListingClose = () => {
     setShowCreateListing(false);
@@ -165,7 +168,8 @@ function FeedContainer() {
 
   const handlePostListingLocal = () => {
     const newListing = {
-      propertyType: document.getElementById('PropertyType').value,
+      ListingType: listingType,
+      ListingLocation: listingLocation,
       description: listingDescription,
       images: uploadedImages,
     };
@@ -174,6 +178,8 @@ function FeedContainer() {
 
   setUploadedImages([]);
   setListingDescription('');
+  setlistingLocation('');
+  setlistingType('');
   setShowCreateListing(false);
   };
 
@@ -194,11 +200,12 @@ function FeedContainer() {
         </div>
       </div>
       <div id='PropertyTypeDiv'>
-        <select id='PropertyType' style={{marginLeft:'2%'}}>
+        <select id='PropertyType' style={{marginLeft:'2%'}} onBlur={(e) => setlistingType(e.currentTarget.value)}
+>
           <option>Residential</option>
           <option>Commercial</option>
         </select>
-        <select>
+        <select id='PropertyLocation' style={{ marginLeft: '2%'}} onBlur={(e) => setlistingLocation(e.currentTarget.value)}>
           <option>Mzuze</option>
           <option>Lilongwe</option>
           <option>Salima</option>
@@ -261,6 +268,7 @@ function FeedContainer() {
     </div>
   );
 }
+
 function ListingContainer({ listing }) {
   return (
     <div className='Listing' id='' style={{marginTop:'4%'}}>
@@ -272,7 +280,16 @@ function ListingContainer({ listing }) {
           <div className='ListingPosterName'></div>
           <div className='ListingPostDate'></div>
         </div>
-        <div id='ListingType'></div>
+       
+       <div className='ListingType'>
+             <img src={process.env.PUBLIC_URL + '/Web Icons/locationIcon.png'} height={20} width={20} alt='location'/>
+             <p>{listing.ListingType}</p>
+       </div>
+       <div className='ListingLocation'>
+             <img src={process.env.PUBLIC_URL + '/Web Icons/locationIcon.png'} height={20} width={20} alt='location'/>
+             <p>{listing.ListingLocation}</p>
+       </div>
+
       </div>
       <div className='ListingPicturesDiv' style={{ marginTop: '1%' }}>
         {listing.images.map((imageUrl, index) => (
