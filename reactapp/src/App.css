@@ -111,3 +111,152 @@ border-radius: 2px;
 width: fit-content;
 height: fit-content;
 }
+
+#FeedContainer{
+  height: 500px;
+  width: 80%;
+  margin-left: 150px;
+  margin-top: 100px;
+  justify-content: center;
+  align-items: center;
+}
+#Poster{
+  border: 0.1px solid rgb(214, 214, 214);
+  width: 70%;
+  height: 70px;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #e8e8e8;
+}
+
+#PosterButton{
+  display: flex;
+  margin-top: 25px;
+  column-gap: 50px;
+}
+
+#FilteringDiv{
+  display: flex;
+  column-gap: 10px;
+  margin-top: 10px;
+}
+#FeedSearchDiv{
+  display: flex;
+  width: 100%;
+  margin-left: 38%;
+  column-gap: 10px;
+}
+
+#CreateListingContainer {
+  display: none;
+}
+
+#CreateListingContainer.show {
+  display: block;
+  background: white; /* Transparent white background */
+  position: fixed;
+  top: 40%;
+  left: 40%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  border: 1px solid black;
+  width: 55%;
+  height: 430px;
+  border-radius: 5px;
+}
+#CreateListingTitleAndCloseIconSection{
+  display: flex;
+  column-gap: 100px;
+ width: 100%;
+}
+#CreateListingTitleDiv{
+width: 80%;
+margin-left: 2%;
+}
+#ListingDescription{
+  width: 90%;
+  min-height: 100px;
+  max-height: 400px;  
+  border: 1px solid rgb(173, 173, 173);
+  padding: 5px;
+  margin-left: 2%;
+
+}
+#ListingDescription:focus{
+outline: none;
+}
+#CloseIconDiv{
+cursor: pointer;
+}
+#UploadPicsDiv{
+  width: 92%;
+  min-height: 50px;
+  max-height: 200px;
+  text-align: center;
+  background-color: rgb(248, 245, 245);
+  margin-left: 2%;
+
+}
+#UploadIcon{
+  margin-top: 2%;
+  cursor: pointer;
+}
+#UploadedPicsDiv{
+  min-height: 200px;
+  max-height: 400px;
+  margin-left: 2%;
+
+}
+
+#PostListingButton{
+  background-color: rgb(132, 173, 220);
+  border: none;
+  margin-left: 2%;
+
+}
+
+  #UploadedPicsDiv {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 8px;
+  }
+.uploaded-image-container{
+  display: block;
+}
+
+.Listing{
+  width: 80%;
+  height: fit-content;
+}
+.ListingHeader{
+  display: flex;
+  column-gap: 15px;
+}
+.ListingPosterLogo_Picture{
+  margin-left: 5px;
+  margin-top: 10px;
+  border-radius: 40px;
+  width: 40px;
+  height: 40px;
+}
+.ListingPosterDiv{
+ column-gap: 10px;
+}
+.ListingActionsDiv{
+  display: flex;
+  column-gap: 10px;
+}
+.ListingActionsDiv div{
+  padding: 3px;
+  font-size: 12px;
+  cursor: pointer;
+  background-color:rgb(132, 173, 220) ;
+  border-radius: 2px;
+}
+.ListingPicturesDiv img{
+  max-width: 40%;
+  min-width: 20%;
+  min-height:100px ;
+  max-height:150px ;
+
+}
