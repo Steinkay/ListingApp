@@ -23,7 +23,7 @@ return function (ContainerBuilder $containerBuilder) {
                 ],
                 'database' => [
                     'host' => 'localhost',
-                    'database' => 'propertylisting',
+                    'database' => 'listingapp',
                     'username' => 'root',
                     'password' => '', 
                 ],

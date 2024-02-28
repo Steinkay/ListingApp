@@ -378,9 +378,9 @@ function Login_SigUp({ setAuthenticated }) {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/Users');
+        const response = await axios.get('http://localhost:8080/siteuser');
         setUsers(response.data);
-        console.log('Users:', response.data);
+        console.log('siteuser:', response.data);
       } catch (error) {
      
       }

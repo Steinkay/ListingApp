@@ -25,17 +25,17 @@ return function (App $app) {
     });
 
     
-    $app->get('/agents', function (Request $request, Response $response) {
+    $app->get('/siteuser', function (Request $request, Response $response) {
         // Get the Capsule instance from the container
         $capsule = $this->get(\Illuminate\Database\Capsule\Manager::class);
     
         // Fetch agents from the 'agents' table
-        $agents = $capsule->table('agents')->get();
+        $agents = $capsule->table('siteuser')->get();
     
         // Convert agents to JSON and send the response
         $response->getBody()->write(json_encode($agents));
         return $response->withHeader('Content-Type', 'application/json');
-    });
+    });  
     
 
     $app->group('/users', function (Group $group) {
