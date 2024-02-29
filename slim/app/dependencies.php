@@ -63,5 +63,12 @@ return function (ContainerBuilder $containerBuilder) {
                 'cache' => 0,
             ]);
         },
+
+        
+    ]);
+    $containerBuilder->addDefinitions([
+        'ListingController' => function ($container) {
+            return new \App\ListingController();
+        },
     ]);
 };

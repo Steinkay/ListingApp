@@ -168,13 +168,30 @@ function FeedContainer() {
 
   const handlePostListingLocal = () => {
     const newListing = {
+      Lister: '1',
       ListingType: listingType,
       ListingLocation: listingLocation,
       description: listingDescription,
       images: uploadedImages,
     };
 
-    handlePostListing(newListing);
+  handlePostListing(newListing);
+
+  fetch('http://localhost:8080/listings', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(newListing),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log('Success:', data);
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+
 
   setUploadedImages([]);
   setListingDescription('');
@@ -270,8 +287,9 @@ function FeedContainer() {
 }
 
 function ListingContainer({ listing }) {
+  
   return (
-    <div className='Listing' id='' style={{marginTop:'4%'}}>
+    <div className='Listing' id={(new Date().getTime() / 1000).toString()}>
       <div className='ListingHeader'>
         <div className='ListingPosterLogo_PictureDiv'>
           <img className='ListingPosterLogo_Picture' src='' alt='Listing Logo' />
@@ -282,11 +300,11 @@ function ListingContainer({ listing }) {
         </div>
        
        <div className='ListingType'>
-             <img src={process.env.PUBLIC_URL + '/Web Icons/locationIcon.png'} height={20} width={20} alt='location'/>
+             <img src={process.env.PUBLIC_URL + '/Web Icons/LocationIcon.jpg'} height={20} width={20} alt='location'/>
              <p>{listing.ListingType}</p>
        </div>
        <div className='ListingLocation'>
-             <img src={process.env.PUBLIC_URL + '/Web Icons/locationIcon.png'} height={20} width={20} alt='location'/>
+             <img src={process.env.PUBLIC_URL + '/Web Icons/LocationIcon.jpg'} height={20} width={20} alt='location'/>
              <p>{listing.ListingLocation}</p>
        </div>
 
@@ -325,8 +343,7 @@ function ListingContainer({ listing }) {
       </div>
       <div className='ListingDescription' style={{ marginTop: '1%' }}>{listing.description}</div>
       <div className='ListingActionsDiv' style={{ marginTop: '1%' }}>
-        <div className='ContactAgent'>Contact</div>
-        <div className='LikeListing'>Like</div>
+        <div className='ViewListing'>View Listing</div>
       </div>
     </div>
   );

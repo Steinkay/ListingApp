@@ -9,6 +9,8 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
 use Illuminate\Database\Capsule\Manager as Capsule;
+require __DIR__ . '/app/ListingController.php';
+
 
 
 return function (App $app) {
@@ -17,7 +19,8 @@ return function (App $app) {
         return $response;
     });
 
-  
+    $app->post('/api/listings', [\App\ListingController::class, 'createListing']);
+
 
     $app->get('/', function (Request $request, Response $response) {
         $response->getBody()->write('Stein Kayuni');
