@@ -6,14 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Listing extends Model
 {
-    protected $table = 'Listings'; 
+    protected $table = 'listings';
 
     protected $fillable = [
         'Lister',
-        'ListingId', 
+        'ListingId',
         'ListingDescription',
+        'Images', 
         'ListingType',
-        'ListingDate'
+        'ListingLocation',
+        'ListingDate',
     ];
 
     public $timestamps = false;

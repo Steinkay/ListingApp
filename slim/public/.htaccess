@@ -32,3 +32,9 @@ deny from all
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteRule ^ index.php [QSA,L]
 </IfModule>
+
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "http://localhost:3000"
+    Header set Access-Control-Allow-Headers "Authorization, Content-Type"
+    Header set Access-Control-Allow-Methods "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+</IfModule>

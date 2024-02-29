@@ -33,14 +33,13 @@ return function (ContainerBuilder $containerBuilder) {
             $capsule = new Capsule;
 
             $settings = $c->get(SettingsInterface::class);
-            $databaseSettings = $settings->get('database');
 
             $capsule->addConnection([
                 'driver' => 'mysql',
-                'host' => $databaseSettings['host'],
-                'database' => $databaseSettings['database'],
-                'username' => $databaseSettings['username'],
-                'password' => $databaseSettings['password'],
+                'host' => 'localhost',
+                'database' => 'listingapp',
+                'username' => 'root',
+                'password' => '', 
                 'charset' => 'utf8',
                 'collation' => 'utf8_unicode_ci',
                 'prefix' => '',
@@ -64,6 +63,9 @@ return function (ContainerBuilder $containerBuilder) {
         },
         'ListingController' => function () {
             return new \App\ListingController();
+        },
+        'Listing' => function () {
+            return new \App\Listing();
         },
     ]);
 };

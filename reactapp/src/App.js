@@ -169,22 +169,25 @@ function FeedContainer() {
   const handlePostListingLocal = () => {
     const newListing = {
       Lister: '1',
+      ListingId: '2',
+      description: listingDescription,
+      images: uploadedImages,
       ListingType: listingType,
       ListingLocation: listingLocation,
-      description: listingDescription,
       ListingDate: 'Today',
-      images: uploadedImages,
+      
     };
 
   handlePostListing(newListing);
 
-  fetch('http://localhost:8080/listings', {
+  fetch('http://localhost:8080/PostListing', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+        'Content-Type': 'application/json',
     },
     body: JSON.stringify(newListing),
-  })
+    credentials: 'include',
+})
     .then((response) => response.json())
     .then((data) => {
       console.log('Success:', data);
@@ -500,6 +503,31 @@ function Login_SigUp({ setAuthenticated }) {
         </button>
       </form>
     </div>
+  );
+}
+
+function ViewListing() {
+  return (
+    <>
+      <div id='ListingDetialsContactContainer'>
+        <div id='ListingDetailsContainer'>
+          <div id='LeftArrowDiv'><img id='LeftArrow' src='' alt='Left Arrow' />{'<'}
+          </div>
+          <div id='ListImages'></div>
+          <div id='RightArrowDiv'><img id='RightArrow' src='' alt='Right Arrow' />{'>'}
+          </div>
+        </div>
+        <div id='ContactAgentForm'>
+          <h3>Contact Seller</h3>
+          <form>
+            <input type="email" />
+            <input type="email" />
+            <input type="text" />
+          </form>
+          <button>Send</button>
+        </div>
+      </div>
+    </>
   );
 }
 

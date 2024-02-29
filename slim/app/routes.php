@@ -9,7 +9,6 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
 use Illuminate\Database\Capsule\Manager as Capsule;
-require __DIR__ . '/ListingController.php';
 
 
 
@@ -18,6 +17,7 @@ return function (App $app) {
         // CORS Pre-Flight OPTIONS Request Handler
         return $response;
     });
+
     $app->add('cors');
     $app->post('/listings', [\App\ListingController::class, 'createListing']);
 
@@ -32,14 +32,52 @@ return function (App $app) {
         // Get the Capsule instance from the container
         $capsule = $this->get(\Illuminate\Database\Capsule\Manager::class);
     
-        // Fetch agents from the 'agents' table
+       
         $agents = $capsule->table('siteuser')->get();
     
-        // Convert agents to JSON and send the response
         $response->getBody()->write(json_encode($agents));
         return $response->withHeader('Content-Type', 'application/json');
     });  
+       
+    $app->get('/listingsmade', function (Request $request, Response $response) {
+        // Get the Capsule instance from the container
+        $capsule = $this->get(\Illuminate\Database\Capsule\Manager::class);
     
+        // Fetch users from the 'siteusers' table
+        $listingsmade = $capsule->table('listings')->get();
+    
+        // Convert agents to JSON and send the response
+        $response->getBody()->write(json_encode($listingsmade));
+        return $response->withHeader('Content-Type', 'application/json');
+    });  
+    
+    $app->post('/PostListing', function (Request $request, Response $response) {
+        // Access request data
+        $data = $request->getParsedBody();
+
+        // Get the Capsule instance from the container
+        $capsule = $this->get(Capsule::class);
+        $imagesString = json_encode($data['images']);
+
+        // Insert data into 'listings' table
+        $capsule->table('listings')->insert([
+            'Lister' => $data['Lister'],
+            'ListingId' => $data['ListingId'],
+            'ListingDescription' => $data['description'],
+            'Images' => $imagesString ,
+            'ListingType' => $data['ListingType'],
+            'ListingLocation' => $data['ListingLocation'],
+            'ListingDate' => $data['ListingDate'],
+        ]);
+
+        // Return a JSON response indicating success
+        $responseData = ['message' => 'Listing created successfully'];
+        $response->getBody()->write(json_encode($responseData));
+
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+    });
+
+
 
     $app->group('/users', function (Group $group) {
         $group->get('', ListUsersAction::class);
