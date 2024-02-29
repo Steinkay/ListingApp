@@ -9,7 +9,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
 use Illuminate\Database\Capsule\Manager as Capsule;
-require __DIR__ . '/app/ListingController.php';
+require __DIR__ . '/ListingController.php';
 
 
 
@@ -18,8 +18,8 @@ return function (App $app) {
         // CORS Pre-Flight OPTIONS Request Handler
         return $response;
     });
-
-    $app->post('/api/listings', [\App\ListingController::class, 'createListing']);
+    $app->add('cors');
+    $app->post('/listings', [\App\ListingController::class, 'createListing']);
 
 
     $app->get('/', function (Request $request, Response $response) {

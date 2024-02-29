@@ -32,7 +32,6 @@ return function (ContainerBuilder $containerBuilder) {
         Capsule::class => function (ContainerInterface $c) {
             $capsule = new Capsule;
 
-            // Retrieve database settings from the Slim settings
             $settings = $c->get(SettingsInterface::class);
             $databaseSettings = $settings->get('database');
 
@@ -53,9 +52,9 @@ return function (ContainerBuilder $containerBuilder) {
             return $capsule;
         },
         
-        'cors' => function ($container) {
+        'cors' => function () {
             return new CorsMiddleware([
-                'origin' => ['http://localhost:3000'],  // Adjust the origin based on your React app's URL
+                'origin' => ['http://localhost:3000'],
                 'methods' => ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'],
                 'headers.allow' => ['Authorization', 'Content-Type'],
                 'headers.expose' => [],
@@ -63,11 +62,7 @@ return function (ContainerBuilder $containerBuilder) {
                 'cache' => 0,
             ]);
         },
-
-        
-    ]);
-    $containerBuilder->addDefinitions([
-        'ListingController' => function ($container) {
+        'ListingController' => function () {
             return new \App\ListingController();
         },
     ]);

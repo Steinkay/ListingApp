@@ -172,6 +172,7 @@ function FeedContainer() {
       ListingType: listingType,
       ListingLocation: listingLocation,
       description: listingDescription,
+      ListingDate: 'Today',
       images: uploadedImages,
     };
 
