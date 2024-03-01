@@ -196,7 +196,7 @@ function FeedContainer() {
       images: uploadedImages,
       ListingType: listingType,
       ListingLocation: listingLocation,
-      ListingDate: 'Today',
+      ListingDate: new Date()/1000,
       
     };
 
