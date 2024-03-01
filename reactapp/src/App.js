@@ -4,9 +4,12 @@ import './App.css';
 import axios from 'axios';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+
 
 function App() {
-  const [authenticated, setAuthenticated] = useState(/* initial authentication state */);
+  const [authenticated, setAuthenticated] = useState();
 
   return (
     <Router>
@@ -26,6 +29,12 @@ function App() {
         />
         <Route path="/listingfeed" element={<HomePage setAuthenticated={setAuthenticated} />} />
         <Route path="/login" element={<Login_SigUp setAuthenticated={setAuthenticated} />} />
+        <Route path="/listing/:listingId" element={
+            <>
+              <Menue setAuthenticated={setAuthenticated} />
+              <ViewListing />
+            </>
+          } />
       </Routes>
     </Router>
   );
@@ -42,9 +51,22 @@ function HomePage({ listings, setAuthenticated }) {
 
 
 
+
 function Menue({setAuthenticated }) {
   const [showMenu, setShowMenu] = useState(true);
   const [showSearchInput, setShowSearchInput] = useState(false);
+  
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/siteuser');
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+      }
+    };
+  
+    fetchUserData();
+  }, []);
 
   const SearchIconClick = () => {
     setShowMenu(false);
@@ -94,8 +116,8 @@ function Menue({setAuthenticated }) {
           />
         </div>
       <div id="MenuUserDiv" style={{display:'flex', columnGap:'5px'}}>
-      
             <img src=''/>
+            <div id='MenuUserName'>{localStorage.getItem('userFullName')}</div>
             <div id='MenueLogout'  onClick={handleLogout}>Logout</div>
  
       </div>
@@ -168,8 +190,8 @@ function FeedContainer() {
 
   const handlePostListingLocal = () => {
     const newListing = {
-      Lister: '1',
-      ListingId: '2',
+      Lister: localStorage.getItem('userId'),
+      ListingId: 'Listing'+(new Date().getTime() / 1000).toString(),
       description: listingDescription,
       images: uploadedImages,
       ListingType: listingType,
@@ -293,7 +315,7 @@ function FeedContainer() {
 function ListingContainer({ listing }) {
   
   return (
-    <div className='Listing' id={(new Date().getTime() / 1000).toString()}>
+    <div className='Listing' id={('Listing'+new Date().getTime() / 1000).toString()}>
       <div className='ListingHeader'>
         <div className='ListingPosterLogo_PictureDiv'>
           <img className='ListingPosterLogo_Picture' src='' alt='Listing Logo' />
@@ -347,7 +369,9 @@ function ListingContainer({ listing }) {
       </div>
       <div className='ListingDescription' style={{ marginTop: '1%' }}>{listing.description}</div>
       <div className='ListingActionsDiv' style={{ marginTop: '1%' }}>
-        <div className='ViewListing'>View Listing</div>
+        <Link to={`/listing/${listing.ListingId}`} className='ViewListing'>
+          View Listing
+        </Link>
       </div>
     </div>
   );
@@ -435,6 +459,7 @@ function Login_SigUp({ setAuthenticated }) {
     fetchUsers();
   }, []); 
 
+
   const handleLoginSubmit = async (event) => {
     event.preventDefault();
   
@@ -443,20 +468,25 @@ function Login_SigUp({ setAuthenticated }) {
         setError('Fetching Users data. Please wait.');
         return;
       }
- 
   
       const matchingAgent = Users.find(
         (agent) =>
           agent.Email.trim().toLowerCase() === credentials.email.trim().toLowerCase() &&
           agent.Password === credentials.password
+          
       );
-    
   
       if (matchingAgent) {
+       
+        const userId = matchingAgent.Id;
+        const fullName = `${matchingAgent.FirstName} ${matchingAgent.LastName}`;
+
+        localStorage.setItem('userId', userId);
+        localStorage.setItem('userFullName', fullName);
+
         setAuthenticated(true);
   
         localStorage.setItem('sessionToken', matchingAgent.sessionToken);
-  
         setError(null);
   
         window.location.href = 'http://localhost:3000/listingfeed';
@@ -468,6 +498,7 @@ function Login_SigUp({ setAuthenticated }) {
       setError('An error occurred during login');
     }
   };
+  
 
   return (
     <div className='form-container' style={{ backgroundColor: '#e1e4eb', width: '30%', marginLeft: '35%', marginTop: '10%' }}>
@@ -505,24 +536,42 @@ function Login_SigUp({ setAuthenticated }) {
     </div>
   );
 }
+function ViewListingPage({ setAuthenticated }) {
+  return (
+    <>
+      <Menue setAuthenticated={setAuthenticated} />
+      <ViewListing />
+    </>
+  );
+}
 
 function ViewListing() {
+  
   return (
     <>
       <div id='ListingDetialsContactContainer'>
         <div id='ListingDetailsContainer'>
-          <div id='LeftArrowDiv'><img id='LeftArrow' src='' alt='Left Arrow' />{'<'}
+          <div className='Arrows' id='LeftArrowDiv'><img id='LeftArrow' src={process.env.PUBLIC_URL + '/Web Icons/left-arrow.png'} height={20}width={20} alt='Arrow' />
           </div>
-          <div id='ListImages'></div>
-          <div id='RightArrowDiv'><img id='RightArrow' src='' alt='Right Arrow' />{'>'}
+          <div id='ListImagesDiv'></div>
+          <div className='Arrows' id='RightArrowDiv'><img id='RightArrow' src={process.env.PUBLIC_URL + '/Web Icons/right-arrow.png'} height={20}width={20} alt='Arrow' />
           </div>
+          <div id='OnViewListingDescription'></div>
         </div>
-        <div id='ContactAgentForm'>
+        <div id='ListingDetailsContactAgentForm'>
+          <div id='ListingDateTypeLocation'>
+              <h3>Listing Details</h3>
+              <label>ListingType:</label>
+              <div id="OnViewListingType"></div>
+              <label>Location:</label>
+              <div id="OnViewListingLocation"></div>
+              <label>Date:</label>
+              <div id="OnViewListingDate" ></div>
+          </div>
           <h3>Contact Seller</h3>
           <form>
-            <input type="email" />
-            <input type="email" />
-            <input type="text" />
+            <label>Email:</label><input type="email" placeholder=''/>
+            <label>Message:</label><input type="text" placeholder=''/>
           </form>
           <button>Send</button>
         </div>

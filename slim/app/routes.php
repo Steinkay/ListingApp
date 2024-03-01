@@ -12,7 +12,7 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 
 
 
-return function (App $app) {
+return function (App $app) { 
     $app->options('/{routes:.*}', function (Request $request, Response $response) {
         // CORS Pre-Flight OPTIONS Request Handler
         return $response;
