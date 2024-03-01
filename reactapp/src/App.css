@@ -251,6 +251,11 @@ cursor: pointer;
 .ListingLocation p{
   font-size: 11px;
 }
+.ViewListing{
+  background-color:rgb(132, 173, 220) ;
+  color: #515050;
+  padding: 2px;
+}
 
 .ListingType{
   margin-top: 4%;

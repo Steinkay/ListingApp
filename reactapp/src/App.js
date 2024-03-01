@@ -156,6 +156,9 @@ function Menue({setAuthenticated }) {
 function FeedContainer() {
   const [showCreateListing, setShowCreateListing] = useState(false);
   const [listings, setListings] = useState([]);
+  const [propertyTypeFilter, setPropertyTypeFilter] = useState('');
+  const [propertyLocationFilter, setPropertyLocationFilter] = useState('');
+
 
   const handleCreateListingClick = () => {
     setShowCreateListing(true);
@@ -164,6 +167,36 @@ function FeedContainer() {
   const handlePostListing = (newListing) => {
     setListings([...listings, newListing]);
   };
+
+  const handlePropertyTypeChange = (event) => {
+    setPropertyTypeFilter(event.currentTarget.value);
+  };
+
+  const handlePropertyLocationChange = (event) => {
+    setPropertyLocationFilter(event.currentTarget.value);
+  };
+
+  // Apply filtering based on propertyTypeFilter and propertyLocationFilter
+  const handleFilterButtonClick = () => {
+    const filteredListings = listings.filter((listing) => {
+      const typeMatches = !propertyTypeFilter || listing.ListingType === propertyTypeFilter;
+      const locationMatches = !propertyLocationFilter || listing.ListingLocation === propertyLocationFilter;
+
+      return typeMatches && locationMatches;
+    });
+
+
+    // Update the displayed listings
+    setListings(filteredListings);
+  };
+
+   // Clear filters and display all listings
+     const handleClearFilterButtonClick = () => {
+      setPropertyTypeFilter('');
+      setPropertyLocationFilter('');
+      setListings(listings);
+    };
+  
 
   function CreateListingContainer() {
   const [uploadedImages, setUploadedImages] = useState([]);
@@ -327,11 +360,11 @@ function ListingContainer({ listing }) {
        
        <div className='ListingType'>
              <img src={process.env.PUBLIC_URL + '/Web Icons/LocationIcon.jpg'} height={20} width={20} alt='location'/>
-             <p>{listing.ListingType}</p>
+             <p className='type'>{listing.ListingType}</p>
        </div>
        <div className='ListingLocation'>
              <img src={process.env.PUBLIC_URL + '/Web Icons/LocationIcon.jpg'} height={20} width={20} alt='location'/>
-             <p>{listing.ListingLocation}</p>
+             <p className='location'>{listing.ListingLocation}</p>
        </div>
 
       </div>
@@ -401,7 +434,7 @@ function ListingContainer({ listing }) {
           <div id='FeedSearchDiv'>
               <div>
                  <label>Propert Type:   
-                    <select>
+                    <select onChange={handlePropertyTypeChange}>
                        <option>---</option>
                        <option>Residential</option>
                        <option>Commercial</option>
@@ -410,7 +443,7 @@ function ListingContainer({ listing }) {
               </div>
               <div>
                <label>District:
-                  <select>
+                  <select onChange={handlePropertyLocationChange}>
                     <option>---</option>
                     <option>Mzuze</option>
                     <option>Lilongwe</option>
@@ -420,8 +453,8 @@ function ListingContainer({ listing }) {
                   </select>
                 </label>
              </div>
-            <button id='FeedSearchButton'  type='submit'>Filter</button>
-
+            <button id='FeedSearchButton'  onClick={handleFilterButtonClick} type='submit'>Filter</button>
+            <button id='ClearFilterButton' onClick={handleClearFilterButtonClick} type='button'>Clear Filter</button>
           </div>
       </div>
       <div id='SearchResults'></div>
