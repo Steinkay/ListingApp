@@ -5,7 +5,6 @@ import axios from 'axios';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
 
 
 function App() {
@@ -224,7 +223,7 @@ function FeedContainer() {
   const handlePostListingLocal = () => {
     const newListing = {
       Lister: localStorage.getItem('userId'),
-      ListingId: 'Listing'+(new Date().getTime() / 1000).toString(),
+      ListingId: 'Listing'+new Date()/1000,
       description: listingDescription,
       images: uploadedImages,
       ListingType: listingType,
