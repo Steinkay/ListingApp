@@ -6,7 +6,7 @@ body{
   cursor: pointer;
 }
 #CompanyLogo img{
-  padding-top: 26px;
+  padding-top: 4px;
 
 }
 #MenueContainer{
@@ -44,7 +44,7 @@ ul a li{
   cursor: pointer;
 }
 #SearchIconDiv{
-margin-left: 300px;
+margin-left: 250px;
 width: 50px;
 height: 40px;
 }
@@ -55,6 +55,7 @@ height: 40px;
   height: 20px;
 
 }
+
 
 #SearchInputDiv{
   display: flex;
@@ -330,4 +331,16 @@ column-gap: 1%;
 #ListingDetailsContactAgentForm {
   display: block;
   background-color: #e7e7e7;
+}
+
+#SignUp_link:hover{
+color: blue;
+cursor: pointer;
+}
+#SignUpTitle{
+  margin-left: 10%;
+}
+.signup-form{
+  width: 115%;
+  margin-left:10%;
 }

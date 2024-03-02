@@ -93,7 +93,8 @@ function Menue({setAuthenticated }) {
            {showMenu && (
       <div id='MenueSection'>
         <div id='CompanyLogo'>
-          <img src='' alt='logo' />
+          <img src={process.env.PUBLIC_URL + '/Web Icons/Home.png'}
+ alt='logo' />
         </div>
         <ul id='MenueItemsSection'>
           <a href='#'>
@@ -468,6 +469,8 @@ function ListingContainer({ listing }) {
 }
 
 function Login_SigUp({ setAuthenticated }) {
+  const [showLoginForm, setShowLoginForm] = useState(true);
+
   const [credentials, setCredentials] = useState({
     email: '',
     password: '',
@@ -484,32 +487,29 @@ function Login_SigUp({ setAuthenticated }) {
         setUsers(response.data);
         console.log('siteuser:', response.data);
       } catch (error) {
-     
+        // Handle error
       }
     };
-  
-    fetchUsers();
-  }, []); 
 
+    fetchUsers();
+  }, []);
 
   const handleLoginSubmit = async (event) => {
     event.preventDefault();
-  
+
     try {
       if (loading) {
         setError('Fetching Users data. Please wait.');
         return;
       }
-  
+
       const matchingAgent = Users.find(
         (agent) =>
           agent.Email.trim().toLowerCase() === credentials.email.trim().toLowerCase() &&
           agent.Password === credentials.password
-          
       );
-  
+
       if (matchingAgent) {
-       
         const userId = matchingAgent.Id;
         const fullName = `${matchingAgent.FirstName} ${matchingAgent.LastName}`;
 
@@ -517,10 +517,10 @@ function Login_SigUp({ setAuthenticated }) {
         localStorage.setItem('userFullName', fullName);
 
         setAuthenticated(true);
-  
+
         localStorage.setItem('sessionToken', matchingAgent.sessionToken);
         setError(null);
-  
+
         window.location.href = 'http://localhost:3000/listingfeed';
       } else {
         setError('Please review your login credentials');
@@ -530,44 +530,86 @@ function Login_SigUp({ setAuthenticated }) {
       setError('An error occurred during login');
     }
   };
-  
 
   return (
     <div className='form-container' style={{ backgroundColor: '#e1e4eb', width: '30%', marginLeft: '35%', marginTop: '10%' }}>
-      <form className='login-form' style={{ marginLeft: '2%' }} onSubmit={handleLoginSubmit}>
-        <h2>Login</h2>
-        {error && (
-          <div id='ValidationErrorText' style={{ color: 'red', marginBottom: '10px' }}>
-            {error}
+      {showLoginForm ? (
+        <form className='login-form' style={{ marginLeft: '2%' }} onSubmit={handleLoginSubmit}>
+          <h2>Login</h2>
+          {error && (
+            <div id='ValidationErrorText' style={{ color: 'red', marginBottom: '10px' }}>
+              {error}
+            </div>
+          )}
+          <div style={{ marginTop: '2%' }}>
+            <label>Email:</label>
+            <input
+              style={{ marginLeft: '6%', width: '60%' }}
+              type='email'
+              placeholder='Enter your email'
+              value={credentials.email}
+              onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
+            />
           </div>
-        )}
-        <div style={{ marginTop: '2%' }}>
-          <label>Email:</label>
-          <input
-            style={{ marginLeft: '6%', width: '60%' }}
-            type='email'
-            placeholder='Enter your email'
-            value={credentials.email}
-            onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
-          />
-        </div>
-        <div style={{ marginTop: '2%' }}>
-          <label>Password: </label>
-          <input
-            type='password'
-            placeholder='Enter your password'
-            style={{ width: '60%' }}
-            value={credentials.password}
-            onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-          />
-        </div>
-        <button style={{ marginTop: '2%' }} type='submit' disabled={loading}>
-          {loading ? 'Please wait...' : 'Login'}
-        </button>
-      </form>
+          <div style={{ marginTop: '2%' }}>
+            <label>Password: </label>
+            <input
+              type='password'
+              placeholder='Enter your password'
+              style={{ width: '60%' }}
+              value={credentials.password}
+              onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+            />
+          </div>
+          <button style={{ marginTop: '2%' }} type='submit' disabled={loading}>
+            {loading ? 'Please wait...' : 'Login'}
+          </button>
+          <div className='signup-link' style={{ marginTop: '2%' }}>
+            <span>Not Signed Up?</span> <a style={{ color: '#5c8bf1' }} id='SignUp_link' onClick={() => setShowLoginForm(false)}>Click Here</a>
+          </div>
+        </form>
+      ) : (
+        <SignUpForm />
+      )}
     </div>
   );
+
+  function SignUpForm() {
+    return (
+      <div className='form-container' style={{ backgroundColor: '#e1e4eb', width: '50%' }}>
+        <h2 id='SignUpTitle'>Sign Up</h2>
+        <form className='signup-form'>
+          <div>
+            <label>Email:</label>
+            <input id='SellerSignUpEmail' type='email'style={{marginLeft:'12.5%' }}  placeholder='Enter your email' />
+          </div>
+          <div>
+            <label>Password: </label>
+            <input id='SellerSignUpPassword' type='password'  placeholder='Enter your password' />
+          </div>
+          <div>
+            <label>License: </label>
+            <input id='Licence' placeholder='Enter your license' style={{marginLeft:'6%' }} />
+          </div>
+          <div>
+            <label>Profile Photo: </label>
+            <input id='SignUpProfilePicUploader' type='file' placeholder='Profile' style={{display:'none'}} />
+            <img src={process.env.PUBLIC_URL + '/Web Icons/Profile Icon.png'}  height={40} width={40} style={{marginLeft:'6%',marginTop:'5%',marginBottom:'2%',cursor:'pointer',borderRadius:'40px 40x 40px 40px' }}/>
+          </div>
+          <button type='submit' style={{ marginTop:'3%' }}>Sign Up</button>
+          <a style={{ color: '#5c8bf1', marginLeft:'3%' }} id='SignUp_link'onClick={() => setShowLoginForm(true)} >Back to Login</a>
+        </form>
+      </div>
+
+    );
+  }
 }
+
+
+
+
+
+
 function ViewListingPage({ setAuthenticated }) {
   return (
     <>
