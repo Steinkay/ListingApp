@@ -36,7 +36,7 @@ ul a{
   margin-left: 10px;
 }
 ul a:hover{
-  color: rgb(61, 158, 242);
+  color: rgb(255, 255, 255);
 }
 ul a li{
 
@@ -368,4 +368,42 @@ cursor: pointer;
   background-color:rgb(132, 195, 250) ;
   margin-top: 4%;
   border: none;
+}
+.Buyers_Seller{
+  border: 1px solid rgb(195, 194, 194);
+  background-color: #ffffff;
+  border-radius: 3px;
+}
+#Buyers_SellersContainer{
+  width: 70%;
+  margin-top: 6.5%;
+  margin-left: 20%;
+
+}
+#Buyers_SellersDiv{
+  width: 100%;
+background-color: white;
+margin-right: 150px;
+margin-top: 20px;
+display:grid;
+grid-template-columns: 230px 230px 230px;
+grid-template-rows:240px 240px 240px;
+grid-gap: 25px;
+grid-row-gap: 50px;
+height: 600px;
+}
+.Buyers_SellerContents{
+  margin-left: 2%;
+  row-gap: 1%;
+  margin-top: 2%;
+}
+.Buyers_SellerPhoto{
+  width: 100px;
+  height: 100px;
+  border-radius: 70px;
+}
+.ViewProfile{
+background-color: rgb(192, 223, 253);
+border: none;
+cursor: pointer;
 }

@@ -34,6 +34,8 @@ function App() {
               <ViewListing />
             </>
           } />
+        <Route path="/buyers_sellers" element={<Buyers_SellersPage />} />
+
         <Route path="/password-reset" element={<ResetPassword />} />
 
       </Routes>
@@ -99,12 +101,15 @@ function Menue({setAuthenticated }) {
  alt='logo' />
         </div>
         <ul id='MenueItemsSection'>
-          <a href='#'>
+          <a href='/listingfeed'>
             <li>Listings</li>
           </a>
-          <a href='#'>
+          <a href='/Profile/'>
             <li>Profile</li>
           </a>
+           <Link to='/buyers_sellers'>
+            <div >Buyers&Sellers</div>
+          </Link>
        
         </ul>
         <div id='SearchIconDiv'>
@@ -849,5 +854,67 @@ function ViewListing() {
   );
 }
 
+function Buyers_SellersPage() {
+  const [siteusers, setSiteusers] = useState([]);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/siteuser');
+        setSiteusers(response.data);
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+      }
+    };
+  
+    fetchUserData();
+  }, []);
+
+  function CreateBuyerSellerDiv() {
+    return (
+      <>
+        {siteusers.map((user) => (
+          <div key={user.Id} className='Buyers_Seller'>
+            <div className='Buyers_SellerContents'>
+              <div className='Buyers_SellerPhotoDiv'>
+                <img
+                  className='Buyers_SellerPhoto'
+                  src={user.ProfilePicture ? `${process.env.PUBLIC_URL}/ProfilePhotos/${user.ProfilePicture}` : `${process.env.PUBLIC_URL}/Profile Icon.png`}
+            
+                  alt='Profile'
+                />
+              </div>
+              <div className='Buyers_SellerNameDiv'>
+                <p className='Buyers_SellerName'>{`${user.FirstName} ${user.LastName}`}</p>
+              </div>
+              <div className='Buyers_SellerProfileType'>
+                <p className='Buyers_SellerProfileType'>{user.ProfileType}</p>
+              </div>
+              <div><button className='ViewProfile'>View Profile</button></div>
+            </div>
+          </div>
+        ))}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Menue  />
+      <div id='Buyers_SellersContainer'>
+        <h3>Buyers & Sellers</h3>
+        <div id='Buyers_SellersFilter'>
+            <label>User Type:
+              <select id='ViewBuyersorSellers'>
+                 <option></option>
+                 <option>Buyer</option>
+                 <option>Seller</option>
+              </select></label>
+        </div>
+        <div id='Buyers_SellersDiv'>{CreateBuyerSellerDiv()}</div>
+      </div>
+    </>
+  );
+}
 
 export default App;
