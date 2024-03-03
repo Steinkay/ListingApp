@@ -135,7 +135,17 @@ height: fit-content;
   margin-top: 25px;
   column-gap: 50px;
 }
+#UserImageDiv{
+  margin-top: -1.5%;
+  margin-left: 1%;
 
+}
+.LoggedInUserPic{
+ width: 50px;
+ height: 50px;
+ border-radius: 50px;
+
+}
 #FilteringDiv{
   display: flex;
   column-gap: 10px;

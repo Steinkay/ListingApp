@@ -160,6 +160,24 @@ function FeedContainer() {
   const [listings, setListings] = useState([]);
   const [propertyTypeFilter, setPropertyTypeFilter] = useState('');
   const [propertyLocationFilter, setPropertyLocationFilter] = useState('');
+  const [siteuser, setSiteuser] = useState([]);
+  const loggedInUserId = localStorage.getItem('userId');
+  const loggedInUser = siteuser.find((user) => user.Id === parseInt(loggedInUserId, 10));
+
+  useEffect(() => {
+    const fetchSiteuserData = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/siteuser');
+        setSiteuser(response.data);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchSiteuserData();
+  }, []);
+
+
 
 
   const handleCreateListingClick = () => {
@@ -409,13 +427,15 @@ function ListingContainer({ listing }) {
   );
 }
 
+
   return (
     <div id='FeedContainer'>
       <div id='Welcome'></div>
       <div id='Poster' onClick={handleCreateListingClick}>
         <div id='PosterButton'>
-          <div>
-            <img className='LoggedInUserPic' id='UserImage' src='' alt='User' />
+          <div id='UserImageDiv'>
+            <img className='LoggedInUserPic' id='UserImage'src={loggedInUser && loggedInUser.ProfilePicture ? `${process.env.PUBLIC_URL}/ProfilePhotos/${loggedInUser.ProfilePicture}` : 'default-image-path.jpg'}
+ alt='Photo'/>
           </div>
           <div id='Listing'>{localStorage.getItem('userFullName')}, click to create a Listing...</div>
         </div>
