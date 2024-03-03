@@ -304,7 +304,7 @@ function FeedContainer() {
           <option>Commercial</option>
         </select>
         <select id='PropertyLocation' style={{ marginLeft: '2%'}} onBlur={(e) => setlistingLocation(e.currentTarget.value)}>
-          <option>Mzuze</option>
+          <option>Mzuzu</option>
           <option>Lilongwe</option>
           <option>Salima</option>
           <option>Mangochi</option>
@@ -469,7 +469,7 @@ function ListingContainer({ listing }) {
                <label>District:
                   <select onChange={handlePropertyLocationChange}>
                     <option>---</option>
-                    <option>Mzuze</option>
+                    <option>Mzuzu</option>
                     <option>Lilongwe</option>
                     <option>Salima</option>
                     <option>Mangochi</option>
@@ -856,6 +856,9 @@ function ViewListing() {
 
 function Buyers_SellersPage() {
   const [siteusers, setSiteusers] = useState([]);
+  const [selectedUserType, setSelectedUserType] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -871,10 +874,21 @@ function Buyers_SellersPage() {
   }, []);
 
   function CreateBuyerSellerDiv() {
+ // Filter users based on selected user type
+ const filteredUsers = siteusers.filter((user) => {
+  const userTypeMatches = selectedUserType === '' || user.ProfileType === selectedUserType;
+  const nameMatches =
+    user.FirstName.toLowerCase().includes(searchInput.toLowerCase()) ||
+    user.LastName.toLowerCase().includes(searchInput.toLowerCase());
+
+  return userTypeMatches && nameMatches;
+});
+
+
     return (
       <>
-        {siteusers.map((user) => (
-          <div key={user.Id} className='Buyers_Seller'>
+        {filteredUsers.map((user) => (
+          <div key={user.Id} id={user.Id} className='Buyers_Seller'>
             <div className='Buyers_SellerContents'>
               <div className='Buyers_SellerPhotoDiv'>
                 <img
@@ -887,7 +901,7 @@ function Buyers_SellersPage() {
               <div className='Buyers_SellerNameDiv'>
                 <p className='Buyers_SellerName'>{`${user.FirstName} ${user.LastName}`}</p>
               </div>
-              <div className='Buyers_SellerProfileType'>
+              <div className='Buyers_SellerProfileTypeDiv'>
                 <p className='Buyers_SellerProfileType'>{user.ProfileType}</p>
               </div>
               <div><button className='ViewProfile'>View Profile</button></div>
@@ -898,18 +912,38 @@ function Buyers_SellersPage() {
     );
   }
 
+  const handleSearchChange = (e) => {
+    setSearchInput(e.target.value);
+  };
+
+
   return (
     <>
       <Menue  />
       <div id='Buyers_SellersContainer'>
         <h3>Buyers & Sellers</h3>
-        <div id='Buyers_SellersFilter'>
+        <div id='Buyers_SellersFilter' style={{display:'flex', columnGap:'2%', width:'100%'}}>
             <label>User Type:
-              <select id='ViewBuyersorSellers'>
+              <select id='ViewBuyersorSellers' onChange={(e) => setSelectedUserType(e.target.value)} >
+                 <option value=''>All</option>
+                 <option value='Buyer'>Buyer</option>
+                 <option value='Seller'>Seller</option>
+              </select>
+            </label>
+            <label>District:
+              <select id='BuyersorSellersLocation'>
                  <option></option>
-                 <option>Buyer</option>
-                 <option>Seller</option>
-              </select></label>
+                 <option value='Blantyre'>Blantyre</option>
+                 <option value='Mangochi'>Mangochi</option>
+                 <option value='Salima'>Salima</option>
+                 <option value='Lilongwe'>Lilongwe</option>
+                 <option value='Mzuzu'>Mzuzu</option>
+              </select>
+            </label>
+            <label  style={{width:'60%'}}>Search by Name:
+                <input id='SearchUsers' type='search'value={searchInput} onChange={handleSearchChange} placeholder='Search by name' style={{width:'50%'}}/>
+            </label>
+               
         </div>
         <div id='Buyers_SellersDiv'>{CreateBuyerSellerDiv()}</div>
       </div>
