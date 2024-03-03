@@ -78,16 +78,12 @@ return function (App $app) {
             // Access JSON request data
             $data = $request->getParsedBody();
     
-            // Handle binary data (image file)
-            $profilePic = file_get_contents("php://input");
-    
-            // Save the file to the public/ProfilePhotos folder
-            $filename = 'ProfilePhotos/' . uniqid() . '.png';  // Generate a unique filename
-            file_put_contents(__DIR__ . '/public/' . $filename, $profilePic);
+            $pictureName = $_FILES['profilePic']['name'];
+         
+            
     
             // Get the Capsule instance from the container
             $capsule = $this->get(Capsule::class);
-            $imagesString = json_encode($filename);  // Save the filename in the database
     
             // Insert data into 'siteuser' table
             $capsule->table('siteuser')->insert([
@@ -97,7 +93,7 @@ return function (App $app) {
                 'Password' => $data['password'],
                 'License' => $data['license'],
                 'ProfileType' => $data['ProfileType'],
-                'ProfilePicture' => $imagesString,
+                'ProfilePicture' =>$pictureName,
             ]);
     
             // Return a JSON response indicating success
@@ -116,6 +112,42 @@ return function (App $app) {
             return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
         }
     });
+
+    
+    $app->post('/uploadprofilepic', function (Request $request, Response $response) {
+        try {
+            $uploadedFile = $request->getUploadedFiles()['profilePic'];
+    
+            // Debugging output
+            $filename = $uploadedFile->getClientFilename();
+            error_log('Received file: ' . $filename);
+
+            $destinationPath = '../../reactapp/public/ProfilePhotos/';
+
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0777, true);
+            }
+
+            $uploadedFile->moveTo($destinationPath . $filename);
+    
+            error_log('File moved successfully to: ' . $destinationPath . $filename);
+    
+            // Respond with a JSON success message
+            $response->getBody()->write(json_encode(['message' => 'File uploaded successfully']));
+    
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+        } catch (\Exception $e) {
+            // Log the error
+            error_log('Error: ' . $e->getMessage());
+    
+            // Respond with a JSON error message
+            $response->getBody()->write(json_encode(['error' => 'Internal Server Error: ' . $e->getMessage()]));
+    
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
+    });
+
+
 
     $app->post('/reset-password', function (Request $request, Response $response, array $args) {
         $data = $request->getParsedBody();

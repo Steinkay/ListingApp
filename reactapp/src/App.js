@@ -467,6 +467,9 @@ function ListingContainer({ listing }) {
   );
 }
 
+
+
+//This Component handles login and sign up process
 function Login_SigUp({ setAuthenticated }) {
   const [showLoginForm, setShowLoginForm] = useState(true);
 const [licenseVisible, setLicenseVisible] = useState(true); 
@@ -622,6 +625,26 @@ const handleUserSignupClick = (hideLicense) => {
       const email = document.getElementById('SellerSignUpEmail').value;
       const password = document.getElementById('SellerSignUpPassword').value;
       const ProfileType = 'Agent';
+
+
+      const form= new FormData();
+      form.append('profilePic', document.getElementById('SignUpProfilePicUploader').files[0]);
+  
+      // Add other form data (firstName, lastName, email, password, etc.) to the formData object if needed
+  
+      fetch('http://localhost:8080/uploadprofilepic', {
+          method: 'POST',
+          body: form,
+      })
+      .then(response => response.json())
+      .then(data => {
+          console.log(data);
+          // Handle the response from the server (success or error)
+      })
+      .catch(error => {
+          console.error('Error uploading profile pic:', error);
+          // Handle the error
+      });
     
       // Always append the license field, whether it's empty or not
       const formData = new FormData();
@@ -668,7 +691,7 @@ const handleUserSignupClick = (hideLicense) => {
 
 
     return (
-      <div className='form-container' style={{ backgroundColor: '#e1e4eb', width: '50%' }}>
+      <div className='form-container' style={{ backgroundColor: '#e1e4eb', width: '50%' }} encType="multipart/form-data">
         <h2 id='SignUpTitle'>Sign Up</h2>
         <div id='ErrorOnSignUp' ></div>
         <form className='signup-form'>
