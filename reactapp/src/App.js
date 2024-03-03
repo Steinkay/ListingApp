@@ -34,6 +34,8 @@ function App() {
               <ViewListing />
             </>
           } />
+        <Route path="/password-reset" element={<ResetPassword />} />
+
       </Routes>
     </Router>
   );
@@ -176,7 +178,6 @@ function FeedContainer() {
     setPropertyLocationFilter(event.currentTarget.value);
   };
 
-  // Apply filtering based on propertyTypeFilter and propertyLocationFilter
   const handleFilterButtonClick = () => {
     const filteredListings = listings.filter((listing) => {
       const typeMatches = !propertyTypeFilter || listing.ListingType === propertyTypeFilter;
@@ -186,11 +187,9 @@ function FeedContainer() {
     });
 
 
-    // Update the displayed listings
     setListings(filteredListings);
   };
 
-   // Clear filters and display all listings
      const handleClearFilterButtonClick = () => {
       setPropertyTypeFilter('');
       setPropertyLocationFilter('');
@@ -418,7 +417,7 @@ function ListingContainer({ listing }) {
           <div>
             <img className='LoggedInUserPic' id='UserImage' src='' alt='User' />
           </div>
-          <div id='Listing'>Click to create a Listing...</div>
+          <div id='Listing'>{localStorage.getItem('userFullName')}, click to create a Listing...</div>
         </div>
       </div>
       <div id='FilteringDiv'>
@@ -470,6 +469,16 @@ function ListingContainer({ listing }) {
 
 function Login_SigUp({ setAuthenticated }) {
   const [showLoginForm, setShowLoginForm] = useState(true);
+const [licenseVisible, setLicenseVisible] = useState(true); 
+
+
+const handleUserSignupClick = (hideLicense) => {
+  setShowLoginForm(false);
+  if (hideLicense) {
+    setLicenseVisible(false);
+  }
+};
+  
 
   const [credentials, setCredentials] = useState({
     email: '',
@@ -565,39 +574,134 @@ function Login_SigUp({ setAuthenticated }) {
             {loading ? 'Please wait...' : 'Login'}
           </button>
           <div className='signup-link' style={{ marginTop: '2%' }}>
-            <span>Not Signed Up?</span> <a style={{ color: '#5c8bf1' }} id='SignUp_link' onClick={() => setShowLoginForm(false)}>Click Here</a>
+            <span>Agent Signup</span> <a style={{ color: '#5c8bf1' }} className='SignUp_link' id='AgentSignUp_link' onClick={() => setShowLoginForm(false)}>Click Here</a>
           </div>
-        </form>
+          <div className='signup-link' style={{ marginTop: '2%' }}>
+            <span>User Signup</span>{' '} <a style={{ color: '#5c8bf1' }} className='SignUp_link' id='UserSignUp_link' onClick={() => handleUserSignupClick(true)}>Click Here</a>
+          </div>
+          <div className='signup-link' style={{ marginTop: '2%' }}>
+          <div>
+             <Link to="/password-reset">Forgot Password?</Link>
+          </div>           
+          </div>
+         </form>
       ) : (
         <SignUpForm />
       )}
     </div>
   );
 
+
+
+
   function SignUpForm() {
+
+    const handleFileUpload = (files) => {
+      // Check if the selected file is an image
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+  
+      if (files.length > 0 && allowedTypes.includes(files[0].type)) {
+        // Handle image upload logic here
+        console.log('Selected image:', files[0]);
+  
+        // You can also set the selected image to be displayed or processed further
+        const uploadedImage = URL.createObjectURL(files[0]);
+        document.getElementById('UploadedProfilePic').src = uploadedImage;
+      } else {
+        console.error('Invalid file type. Please select an image.');
+      }
+    };
+    const [license, setLicense] = useState('');
+
+
+    const handleSignupSubmit = async (event) => {
+      event.preventDefault();
+    
+      const firstName = document.getElementById('SellerSignUpFirstName').value;
+      const lastName = document.getElementById('SellerSignUpLastName').value;
+      const email = document.getElementById('SellerSignUpEmail').value;
+      const password = document.getElementById('SellerSignUpPassword').value;
+      const ProfileType = 'Agent';
+    
+      // Always append the license field, whether it's empty or not
+      const formData = new FormData();
+      formData.append('firstName', firstName);
+      formData.append('lastName', lastName);
+      formData.append('email', email);
+      formData.append('password', password);
+      formData.append('license', license);  // Assuming 'license' is defined somewhere in your code
+      formData.append('ProfileType', ProfileType);
+      formData.append('profilePic', document.getElementById('SignUpProfilePicUploader').files[0]);
+    
+      try {
+        const usersResponse = await fetch('http://localhost:8080/siteuser');
+        const users = await usersResponse.json();
+    
+        // Check if the user with the provided email already exists
+        const userExists = users.some((user) => user.Email.toLowerCase() === email.toLowerCase());
+    
+        if (userExists) {
+          // Display error message
+          document.getElementById('ErrorOnSignUp').innerText = 'Email already exists';
+          return; // Stop further execution
+        }
+    
+        const signupResponse = await fetch('http://localhost:8080/SignUpUser', {
+          method: 'POST',
+          body: formData,
+        });
+    
+        if (signupResponse.ok) {
+          // Successful signup, handle accordingly
+          console.log('Signup successful');
+        } else {
+          console.error('Signup failed');
+        }
+      } catch (error) {
+        console.error('Error during signup:', error);
+      }
+    };
+    const handleProfilePicClick = () => {
+      // Trigger the hidden file input
+      document.getElementById('SignUpProfilePicUploader').click();
+    };
+
+
     return (
       <div className='form-container' style={{ backgroundColor: '#e1e4eb', width: '50%' }}>
         <h2 id='SignUpTitle'>Sign Up</h2>
+        <div id='ErrorOnSignUp' ></div>
         <form className='signup-form'>
           <div>
+            <label>First Name:</label>
+            <input id='SellerSignUpFirstName' type='text'style={{marginLeft:'1%' }}  placeholder='First name' />
+          </div>
+          <div>
+            <label>Last Name:</label>
+            <input id='SellerSignUpLastName' type='text'style={{marginLeft:'2%' }}  placeholder='Last name' />
+          </div>
+          <div>
             <label>Email:</label>
-            <input id='SellerSignUpEmail' type='email'style={{marginLeft:'12.5%' }}  placeholder='Enter your email' />
+            <input id='SellerSignUpEmail' type='email'style={{marginLeft:'15.5%' }}  placeholder='Enter your email' />
           </div>
           <div>
             <label>Password: </label>
-            <input id='SellerSignUpPassword' type='password'  placeholder='Enter your password' />
+            <input id='SellerSignUpPassword' type='password'  placeholder='Enter your password' style={{marginLeft:'3.5%' }} />
           </div>
-          <div>
-            <label>License: </label>
-            <input id='Licence' placeholder='Enter your license' style={{marginLeft:'6%' }} />
-          </div>
+          {licenseVisible && (
+              <div>
+               <label>License: </label>
+               <input id='Licence' placeholder='Enter your license' style={{ marginLeft: '9%' }}  value={license}
+              onChange={(e) => setLicense(e.target.value)} />
+              </div>
+          )}
           <div>
             <label>Profile Photo: </label>
-            <input id='SignUpProfilePicUploader' type='file' placeholder='Profile' style={{display:'none'}} />
-            <img src={process.env.PUBLIC_URL + '/Web Icons/Profile Icon.png'}  height={40} width={40} style={{marginLeft:'6%',marginTop:'5%',marginBottom:'2%',cursor:'pointer',borderRadius:'40px 40x 40px 40px' }}/>
+            <input id='SignUpProfilePicUploader' type='file' accept='image' placeholder='Profile' style={{display:'none'}} onChange={(e) => handleFileUpload(e.target.files)}/>
+            <img onClick={handleProfilePicClick} id='UploadedProfilePic'  src={process.env.PUBLIC_URL + '/Web Icons/Profile Icon.png'}  height={40} width={40} style={{marginLeft:'6%',marginTop:'5%',marginBottom:'2%',cursor:'pointer',borderRadius:'40px 40x 40px 40px' }}/>
           </div>
-          <button type='submit' style={{ marginTop:'3%' }}>Sign Up</button>
-          <a style={{ color: '#5c8bf1', marginLeft:'3%' }} id='SignUp_link'onClick={() => setShowLoginForm(true)} >Back to Login</a>
+          <button type='submit' style={{ marginTop:'3%' }} onClick={handleSignupSubmit}>Sign Up</button>
+          <a style={{ color: '#5c8bf1', marginLeft:'3%' }} id='SignUp_link'onClick={() => window.location.reload()} >Back to Login</a>
         </form>
       </div>
 
@@ -607,6 +711,54 @@ function Login_SigUp({ setAuthenticated }) {
 
 
 
+function ResetPassword() {
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleResetRequest = async () => {
+    try {
+      setLoading(true);
+
+      const response = await fetch('http://localhost:8080/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage(data.message || 'Password reset successful');
+      } else {
+        setMessage(data.error || 'Password reset failed');
+      }
+    } catch (error) {
+      console.error('Error during password reset request:', error);
+      setMessage('An error occurred during the password reset request');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  return (
+    <div id='ResetPasswordDiv'>
+      <h3>Reset Password</h3>
+      <div>
+        <label>Email: <input type='email' value={email} onChange={(e) => setEmail(e.target.value)} placeholder='Enter your email' style={{width:'60%'}} /></label>
+      </div>
+      <button id='PasswordRestButton' onClick={handleResetRequest} disabled={loading}>
+        {loading ? 'Resetting...' : 'Reset'}
+      </button>
+      <p>{message && typeof message === 'string' ? message : ' '}</p>
+      </div>
+      
+      
+  );
+}
 
 
 

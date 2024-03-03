@@ -39,6 +39,8 @@ $container = $containerBuilder->build();
 // Instantiate the app
 AppFactory::setContainer($container);
 $app = AppFactory::create();
+$capsule = $container->get(\Illuminate\Database\Capsule\Manager::class);
+$capsule->bootEloquent();
 $app->addBodyParsingMiddleware();
 $app->add('cors');
 $callableResolver = $app->getCallableResolver();

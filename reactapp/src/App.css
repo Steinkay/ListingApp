@@ -333,14 +333,29 @@ column-gap: 1%;
   background-color: #e7e7e7;
 }
 
-#SignUp_link:hover{
+.SignUp_link:hover{
 color: blue;
 cursor: pointer;
 }
 #SignUpTitle{
   margin-left: 10%;
 }
+#ErrorOnSignUp{
+  margin-left: 10%;
+  color: red;
+}
 .signup-form{
-  width: 115%;
+  width: 120%;
   margin-left:10%;
+}
+#ResetPasswordDiv{
+  margin-left: 30%;
+  margin-top: 10%;
+  background-color: #f6f6f6;
+  width: 40%;
+}
+#PasswordRestButton{
+  background-color:rgb(132, 195, 250) ;
+  margin-top: 4%;
+  border: none;
 }
