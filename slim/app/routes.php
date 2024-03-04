@@ -25,6 +25,7 @@ return function (App $app) {
         return $response;
     });
 
+    //gets siteusers
     $app->get('/siteuser', function (Request $request, Response $response) {
         // Get the Capsule instance from the container
         $capsule = $this->get(\Illuminate\Database\Capsule\Manager::class);
@@ -35,6 +36,7 @@ return function (App $app) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
+    //Sends data of listings in the database
     $app->get('/listingsmade', function (Request $request, Response $response) {
         // Get the Capsule instance from the container
         $capsule = $this->get(\Illuminate\Database\Capsule\Manager::class);
@@ -47,6 +49,7 @@ return function (App $app) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
+    //sends listing data into database
     $app->post('/PostListing', function (Request $request, Response $response) {
         // Access request data
         $data = $request->getParsedBody();
@@ -73,6 +76,7 @@ return function (App $app) {
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
     });
 
+    //Handle user signup
     $app->post('/SignUpUser', function (Request $request, Response $response) {
         try {
             // Access JSON request data
@@ -113,7 +117,7 @@ return function (App $app) {
         }
     });
 
-    
+    //handle profile picture upload
     $app->post('/uploadprofilepic', function (Request $request, Response $response) {
         try {
             $uploadedFile = $request->getUploadedFiles()['profilePic'];
@@ -147,15 +151,51 @@ return function (App $app) {
         }
     });
 
+    $app->post('/uploadlistingphotos', function (Request $request, Response $response) {
+        try {
+            // Retrieve binary image data from the request body
+            $imageData = $request->getBody()->getContents();
+    
+           echo $imageData;
+            // Generate a unique filename or use a specific naming convention
+            $filename = 'image_' . uniqid() . '.jpg';
+    
+            $destinationPath = '../../reactapp/public/ListingPhotos/';
+    
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0777, true);
+            }
+    
+            // Save the binary image data to a file
+            file_put_contents($destinationPath . $filename, $imageData);
+    
+            error_log('File saved successfully to: ' . $destinationPath . $filename);
+    
+            // Respond with a JSON success message
+            $response->getBody()->write(json_encode(['message' => 'File uploaded successfully']));
+    
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+        } catch (\Exception $e) {
+            // Log the error
+            error_log('Error: ' . $e->getMessage());
+    
+            // Respond with a JSON error message
+            $response->getBody()->write(json_encode(['error' => 'Internal Server Error: ' . $e->getMessage()]));
+    
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
+    });
 
+    
 
+    //Api created to hand password reset
     $app->post('/reset-password', function (Request $request, Response $response, array $args) {
         $data = $request->getParsedBody();
 
-        // Create an instance of the Functions class
+        // Create an instance of the Functions class located in src/Services/Functions.php created to hand password reset
         $functions = new Functions();
 
-        // Check if the email exists in your database
+        // api checks if email exists in the database
         $userExists = $functions->checkIfUserExists($data['email']);
 
         if ($userExists) {
@@ -188,6 +228,29 @@ return function (App $app) {
             return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
         }
     });
+
+    //Helps displaying user Profile by targeting id
+    $app->get('/siteuser/{userId}', function (Request $request, Response $response, array $args) {
+        $userId = $args['userId'];
+        
+        $userData = Capsule::table('siteuser')
+            ->where('Id', $userId)
+            ->first();  
+        
+        if (!$userData) {
+            $response = $response->withStatus(404)
+                ->withHeader('Content-Type', 'application/json');
+            $response->getBody()->write(json_encode(['error' => 'User not found']));
+            return $response;
+        }
+        
+        $response = $response->withHeader('Content-Type', 'application/json');
+        $response->getBody()->write(json_encode($userData));
+        return $response;
+    });
+
+
+
 
     $app->group('/users', function (Group $group) {
         $group->get('', ListUsersAction::class);

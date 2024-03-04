@@ -5,10 +5,17 @@ import axios from 'axios';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 
 function App() {
   const [authenticated, setAuthenticated] = useState();
+
+  const userId = localStorage.getItem('userId');
+
+  // Create the path using the userId
+  const profilePath = `/Profile/${userId}`;
 
   return (
     <Router>
@@ -19,7 +26,6 @@ function App() {
             authenticated ? (
               <>
                 <HomePage setAuthenticated={setAuthenticated} />
-                <Menue setAuthenticated={setAuthenticated} />
               </>
             ) : (
               <Login_SigUp setAuthenticated={setAuthenticated} />
@@ -28,13 +34,24 @@ function App() {
         />
         <Route path="/listingfeed" element={<HomePage setAuthenticated={setAuthenticated} />} />
         <Route path="/login" element={<Login_SigUp setAuthenticated={setAuthenticated} />} />
-        <Route path="/listing/:listingId" element={
+      
+          <Route path="/Profile/:profileId" element={
+              <>
+              <Menue setAuthenticated={setAuthenticated} />
+              <ProfilePage />
+              
+              </>
+          
+             }  />
+
+       
+        <Route path="/buyers_sellers" element={
             <>
               <Menue setAuthenticated={setAuthenticated} />
-              <ViewListing />
+              <Buyers_SellersPage />
             </>
           } />
-        <Route path="/buyers_sellers" element={<Buyers_SellersPage />} />
+          
 
         <Route path="/password-reset" element={<ResetPassword />} />
 
@@ -56,8 +73,6 @@ function HomePage({ listings, setAuthenticated }) {
 
 
 function Menue({setAuthenticated }) {
-  const [showMenu, setShowMenu] = useState(true);
-  const [showSearchInput, setShowSearchInput] = useState(false);
   
   useEffect(() => {
     const fetchUserData = async () => {
@@ -71,15 +86,8 @@ function Menue({setAuthenticated }) {
     fetchUserData();
   }, []);
 
-  const SearchIconClick = () => {
-    setShowMenu(false);
-    setShowSearchInput(true);
-  };
 
-  const CloseIconClick = () => {
-    setShowMenu(true);
-    setShowSearchInput(false);
-  };
+
   const navigate = useNavigate();
 
 
@@ -87,74 +95,43 @@ function Menue({setAuthenticated }) {
     setAuthenticated(false);
   
     localStorage.removeItem('sessionToken');
-    console.log('Session token removed from localStorage');
   
     navigate('/login');
   };
+    const userId = localStorage.getItem('userId');
+    const profilePath = `/Profile/${userId}`;
+  
 
   return (
     <div id='MenueContainer'>
-           {showMenu && (
+       
       <div id='MenueSection'>
         <div id='CompanyLogo'>
-          <img src={process.env.PUBLIC_URL + '/Web Icons/Home.png'}
- alt='logo' />
+        <a href='/listingfeed'><img src={process.env.PUBLIC_URL + '/Web Icons/Home.png'}
+ alt='logo' /></a>
         </div>
         <ul id='MenueItemsSection'>
           <a href='/listingfeed'>
             <li>Listings</li>
           </a>
-          <a href='/Profile/'>
-            <li>Profile</li>
+          <a href={`${profilePath}`}>
+            <li id='Profile'>Profile</li>
           </a>
            <Link to='/buyers_sellers'>
             <div >Buyers&Sellers</div>
           </Link>
        
         </ul>
-        <div id='SearchIconDiv'>
-          <img
-            onClick={SearchIconClick}
-            id='SearchIcon'
-            src={process.env.PUBLIC_URL + '/Web Icons/Search Icon.png'}
-            height={20}
-            width={20}
-            alt='Icon'
-          />
-        </div>
-      <div id="MenuUserDiv" style={{display:'flex', columnGap:'5px'}}>
+      
+      <div id="MenuUserDiv" style={{display:'flex', columnGap:'20px'}}>
             <img src=''/>
             <div id='MenuUserName'>{localStorage.getItem('userFullName')}</div>
             <div id='MenueLogout'  onClick={handleLogout}>Logout</div>
  
       </div>
-      </div>)}
+      </div>
 
-      {showSearchInput && (
-        <div id='SearchInputDiv'>
-          <input id='SearchInput' placeholder='Search...' type='text' />
-          <img
-            src={process.env.PUBLIC_URL + '/Web Icons/Search Icon.png'}
-            id='InputSearchIcon'
-            height='18px'
-            width='18px'
-            alt='Search Icon'
-          />
-          <div>
-            <img
-              src={
-                process.env.PUBLIC_URL +
-                '/Web Icons/close_FILL1_wght100_GRAD0_opsz48.png'
-              }
-              id='SearchInputCloseIcon'
-              height='25px'
-              width='25px'
-              alt='Close'
-              onClick={CloseIconClick}
-            />
-          </div>
-        </div>
-      )}
+     
     </div>
   );
 }
@@ -221,65 +198,98 @@ function FeedContainer() {
   
 
   function CreateListingContainer() {
-  const [uploadedImages, setUploadedImages] = useState([]);
-  const [listingDescription, setListingDescription] = useState('');
-  const [listingLocation, setlistingLocation] = useState('');
-  const [listingType, setlistingType] = useState('');
-
-
-  const handleCreateListingClose = () => {
-    setShowCreateListing(false);
-  };
-
-  const handleImageUpload = (event) => {
-    const files = event.target.files;
-    const newImages = Array.from(files).map((file) => URL.createObjectURL(file));
-    setUploadedImages([...uploadedImages, ...newImages]);
-  };
-
-  const handleImageRemove = (index) => {
-    const updatedImages = [...uploadedImages];
-    updatedImages.splice(index, 1);
-    setUploadedImages(updatedImages);
-  };
-
-  const handlePostListingLocal = () => {
-    const newListing = {
-      Lister: localStorage.getItem('userId'),
-      ListingId: 'Listing'+new Date()/1000,
-      description: listingDescription,
-      images: uploadedImages,
-      ListingType: listingType,
-      ListingLocation: listingLocation,
-      ListingDate: new Date()/1000,
-      
+    const [uploadedImages, setUploadedImages] = useState([]);
+    const [listingDescription, setListingDescription] = useState('');
+    const [listingLocation, setlistingLocation] = useState('');
+    const [listingType, setlistingType] = useState('');
+  
+    const handleCreateListingClose = () => {
+      setShowCreateListing(false);
     };
+  
+    const handleImageUpload = (event) => {
+      const files = event.target.files;
+      const newImages = Array.from(files).map((file) => file);
+      setUploadedImages([...uploadedImages, ...newImages]);
+    };
+  
+    const handleImageRemove = (index) => {
+      const updatedImages = [...uploadedImages];
+      updatedImages.splice(index, 1);
+      setUploadedImages(updatedImages);
+    };
+  
 
-  handlePostListing(newListing);
 
-  fetch('http://localhost:8080/PostListing', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(newListing),
-    credentials: 'include',
-})
-    .then((response) => response.json())
-    .then((data) => {
-      console.log('Success:', data);
-    })
-    .catch((error) => {
-      console.error('Error:', error);
+    
+    const handlePostListingLocal = async () => {
+      
+      
+      const formData = new FormData();
+
+      uploadedImages.forEach((file, index) => {
+        formData.append(index, file, file.name);
+      });
+      console.log(formData)
+  try {
+    const response = await fetch('http://localhost:8080/uploadlistingphotos', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
     });
 
+    if (response.ok) {
+      console.log('Images uploaded successfully');
+      // Extract information from the response if needed
+      const responseData = await response.json();
+      console.log('Response Data:', responseData);
+    } else {
+      console.error('Failed to upload images');
+    }
+  } catch (error) {
+    console.error('Error during image upload:', error);
+  }
 
-  setUploadedImages([]);
-  setListingDescription('');
-  setlistingLocation('');
-  setlistingType('');
-  setShowCreateListing(false);
-  };
+      
+      const newListing = {
+        Lister: localStorage.getItem('userId'),
+        ListingId: 'Listing' + new Date() / 1000,
+        description: listingDescription,
+        images: uploadedImages.map((file) => ({
+          filename: file.name,
+          size: file.size,
+          url: URL.createObjectURL(file),
+        })),
+        ListingType: listingType,
+        ListingLocation: listingLocation,
+        ListingDate: new Date() / 1000,
+      };
+  
+      handlePostListing(newListing);
+  
+      fetch('http://localhost:8080/PostListing', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newListing),
+        credentials: 'include',
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log('Success:', data);
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+        });
+  
+      setUploadedImages([]);
+      setListingDescription('');
+      setlistingLocation('');
+      setlistingType('');
+      setShowCreateListing(false);
+    };
+  
 
   return (
     <div id='CreateListingContainer' className={showCreateListing ? 'show' : 'hide'}>
@@ -340,8 +350,8 @@ function FeedContainer() {
           />
         </div>
         <div id='UploadedPicsDiv'>
-          {uploadedImages.map((imageUrl, index) => (
-            <div key={imageUrl} className='uploaded-image-container'>
+        {uploadedImages.map((file, index) => (
+            <div key={index} className='uploaded-image-container'>
               <img
                 src={process.env.PUBLIC_URL + '/Web Icons/close_FILL1_wght100_GRAD0_opsz48.png'}
                 alt='Remove Image'
@@ -350,12 +360,14 @@ function FeedContainer() {
                 onClick={() => handleImageRemove(index)}
               />
               <img
-                src={imageUrl}
+                src={URL.createObjectURL(file)}
                 alt={`Uploaded Image ${index + 1}`}
                 style={{ maxWidth: '60px', maxHeight: '60px' }}
               />
+              <p>{file.name}</p> {/* Displaying the filename */}
             </div>
           ))}
+
         </div>
       </div>
       <div>
@@ -373,15 +385,15 @@ function ListingContainer({ listing }) {
     <div className='Listing' id={('Listing'+new Date().getTime() / 1000).toString()}>
       <div className='ListingHeader'>
         <div className='ListingPosterLogo_PictureDiv'>
-          <img className='ListingPosterLogo_Picture' src='' alt='Listing Logo' />
+        <img className='ListingPoster_Picture' src={`${process.env.PUBLIC_URL}/ProfilePhotos/${loggedInUser.ProfilePicture}`} alt='ListingerPic' />
         </div>
         <div className='ListingPosterDiv'>
-          <div className='ListingPosterName'></div>
+          <div className='ListingPosterName' style={{marginTop:'10%'}}>{loggedInUser.FirstName+' '+loggedInUser.LastName}</div>
           <div className='ListingPostDate'></div>
         </div>
        
        <div className='ListingType'>
-             <img src={process.env.PUBLIC_URL + '/Web Icons/LocationIcon.jpg'} height={20} width={20} alt='location'/>
+             <img src={process.env.PUBLIC_URL + '/Web Icons/home_FILL0_wght200_GRAD200_opsz48.png'} style={{marginLeft:'1%'}} height={25} width={25} alt='location'/>
              <p className='type'>{listing.ListingType}</p>
        </div>
        <div className='ListingLocation'>
@@ -392,41 +404,16 @@ function ListingContainer({ listing }) {
       </div>
       <div className='ListingPicturesDiv' style={{ marginTop: '1%' }}>
         {listing.images.map((imageUrl, index) => (
-          index < 2 && (
-            <div key={index} className='uploaded-image-container' style={{ position: 'relative' }}>
-              {index === 1 && listing.images.length > 2 && (
-                <div
-                  className="overlay-div"
-                  style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    top: 0,
-                    width: '25%',
-                    height: '100%',
-                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: '4px',
-                    cursor:'pointer'
-                  }}
-                >
-                  +{listing.images.length - 2}
-                </div>
-              )}
+       
+        
               <img src={imageUrl} alt={`Listing Image ${index + 1}`} />
-            </div>
-          )
+          
+        
         ))}
       </div>
       <div className='ListingDescription' style={{ marginTop: '1%' }}>{listing.description}</div>
       <div className='ListingActionsDiv' style={{ marginTop: '1%' }}>
-        <Link to={`/listing/${listing.ListingId}`} className='ViewListing'>
-          View Listing
-        </Link>
+         <div>Contact</div>
       </div>
     </div>
   );
@@ -439,7 +426,7 @@ function ListingContainer({ listing }) {
       <div id='Poster' onClick={handleCreateListingClick}>
         <div id='PosterButton'>
           <div id='UserImageDiv'>
-            <img className='LoggedInUserPic' id='UserImage'src={loggedInUser && loggedInUser.ProfilePicture ? `${process.env.PUBLIC_URL}/ProfilePhotos/${loggedInUser.ProfilePicture}` : 'default-image-path.jpg'}
+            <img   className='LoggedInUserPic' id='UserImage'src={loggedInUser && loggedInUser.ProfilePicture ? `${process.env.PUBLIC_URL}/ProfilePhotos/${loggedInUser.ProfilePicture}` : 'default-image-path.jpg'}
  alt='Photo'/>
           </div>
           <div id='Listing'>{localStorage.getItem('userFullName')}, click to create a Listing...</div>
@@ -602,10 +589,10 @@ const handleUserSignupClick = (hideLicense) => {
             {loading ? 'Please wait...' : 'Login'}
           </button>
           <div className='signup-link' style={{ marginTop: '2%' }}>
-            <span>Agent Signup</span> <a style={{ color: '#5c8bf1' }} className='SignUp_link' id='AgentSignUp_link' onClick={() => setShowLoginForm(false)}>Click Here</a>
+            <span>Seller Signup</span> <a style={{ color: '#5c8bf1' }} className='SignUp_link' id='AgentSignUp_link' onClick={() => setShowLoginForm(false)}>Click Here</a>
           </div>
           <div className='signup-link' style={{ marginTop: '2%' }}>
-            <span>User Signup</span>{' '} <a style={{ color: '#5c8bf1' }} className='SignUp_link' id='UserSignUp_link' onClick={() => handleUserSignupClick(true)}>Click Here</a>
+            <span>Buyer Signup</span>{' '} <a style={{ color: '#5c8bf1' }} className='SignUp_link' id='UserSignUp_link' onClick={() => handleUserSignupClick(true)}>Click Here</a>
           </div>
           <div className='signup-link' style={{ marginTop: '2%' }}>
           <div>
@@ -649,7 +636,8 @@ const handleUserSignupClick = (hideLicense) => {
       const lastName = document.getElementById('SellerSignUpLastName').value;
       const email = document.getElementById('SellerSignUpEmail').value;
       const password = document.getElementById('SellerSignUpPassword').value;
-      const ProfileType = 'Agent';
+
+      const ProfileType = license ? 'Seller' : 'Buyer';
 
 
       const form= new FormData();
@@ -746,7 +734,7 @@ const handleUserSignupClick = (hideLicense) => {
           <div>
             <label>Profile Photo: </label>
             <input id='SignUpProfilePicUploader' type='file' accept='image' placeholder='Profile' style={{display:'none'}} onChange={(e) => handleFileUpload(e.target.files)}/>
-            <img onClick={handleProfilePicClick} id='UploadedProfilePic'  src={process.env.PUBLIC_URL + '/Web Icons/Profile Icon.png'}  height={40} width={40} style={{marginLeft:'6%',marginTop:'5%',marginBottom:'2%',cursor:'pointer',borderRadius:'40px 40x 40px 40px' }}/>
+            <img onClick={handleProfilePicClick} id='UploadedProfilePic'  src={process.env.PUBLIC_URL + '/Web Icons/Profile Icon.png'}  height={40} width={40} style={{marginLeft:'6%',marginTop:'5%',marginBottom:'2%',cursor:'pointer',borderRadius:'40px 40x 40px 40px' }} alt='Icon'/>
           </div>
           <button type='submit' style={{ marginTop:'3%' }} onClick={handleSignupSubmit}>Sign Up</button>
           <a style={{ color: '#5c8bf1', marginLeft:'3%' }} id='SignUp_link'onClick={() => window.location.reload()} >Back to Login</a>
@@ -810,49 +798,8 @@ function ResetPassword() {
 
 
 
-function ViewListingPage({ setAuthenticated }) {
-  return (
-    <>
-      <Menue setAuthenticated={setAuthenticated} />
-      <ViewListing />
-    </>
-  );
-}
 
-function ViewListing() {
-  
-  return (
-    <>
-      <div id='ListingDetialsContactContainer'>
-        <div id='ListingDetailsContainer'>
-          <div className='Arrows' id='LeftArrowDiv'><img id='LeftArrow' src={process.env.PUBLIC_URL + '/Web Icons/left-arrow.png'} height={20}width={20} alt='Arrow' />
-          </div>
-          <div id='ListImagesDiv'></div>
-          <div className='Arrows' id='RightArrowDiv'><img id='RightArrow' src={process.env.PUBLIC_URL + '/Web Icons/right-arrow.png'} height={20}width={20} alt='Arrow' />
-          </div>
-          <div id='OnViewListingDescription'></div>
-        </div>
-        <div id='ListingDetailsContactAgentForm'>
-          <div id='ListingDateTypeLocation'>
-              <h3>Listing Details</h3>
-              <label>ListingType:</label>
-              <div id="OnViewListingType"></div>
-              <label>Location:</label>
-              <div id="OnViewListingLocation"></div>
-              <label>Date:</label>
-              <div id="OnViewListingDate" ></div>
-          </div>
-          <h3>Contact Seller</h3>
-          <form>
-            <label>Email:</label><input type="email" placeholder=''/>
-            <label>Message:</label><input type="text" placeholder=''/>
-          </form>
-          <button>Send</button>
-        </div>
-      </div>
-    </>
-  );
-}
+
 
 function Buyers_SellersPage() {
   const [siteusers, setSiteusers] = useState([]);
@@ -888,23 +835,28 @@ function Buyers_SellersPage() {
     return (
       <>
         {filteredUsers.map((user) => (
-          <div key={user.Id} id={user.Id} className='Buyers_Seller'>
+          <div key={user.Id}  className='Buyers_Seller'>
             <div className='Buyers_SellerContents'>
               <div className='Buyers_SellerPhotoDiv'>
                 <img
                   className='Buyers_SellerPhoto'
-                  src={user.ProfilePicture ? `${process.env.PUBLIC_URL}/ProfilePhotos/${user.ProfilePicture}` : `${process.env.PUBLIC_URL}/Profile Icon.png`}
+                  src={user.ProfilePicture ? `${process.env.PUBLIC_URL}/ProfilePhotos/${user.ProfilePicture}` : `${process.env.PUBLIC_URL}/ProfilePhotos/Profile Icon.png`}
             
                   alt='Profile'
                 />
               </div>
               <div className='Buyers_SellerNameDiv'>
-                <p className='Buyers_SellerName'>{`${user.FirstName} ${user.LastName}`}</p>
+                <h4 className='Buyers_SellerName'>{`${user.FirstName} ${user.LastName}`}</h4>
               </div>
               <div className='Buyers_SellerProfileTypeDiv'>
-                <p className='Buyers_SellerProfileType'>{user.ProfileType}</p>
+                <p  className='Buyers_SellerProfileType'>Profile: {user.ProfileType}</p>
               </div>
-              <div><button className='ViewProfile'>View Profile</button></div>
+              <div className='Buyers_SellerLocationDiv'>
+                <p className='Buyers_SellerLocation'>Location: {user.Location}</p>
+              </div>
+              <div><Link to={`/Profile/${user.Id}`}>
+                  <button className='ViewProfile' id={user.Id}>View Profile</button>
+              </Link></div>
             </div>
           </div>
         ))}
@@ -919,9 +871,8 @@ function Buyers_SellersPage() {
 
   return (
     <>
-      <Menue  />
       <div id='Buyers_SellersContainer'>
-        <h3>Buyers & Sellers</h3>
+        <h2>Buyers & Sellers</h2>
         <div id='Buyers_SellersFilter' style={{display:'flex', columnGap:'2%', width:'100%'}}>
             <label>User Type:
               <select id='ViewBuyersorSellers' onChange={(e) => setSelectedUserType(e.target.value)} >
@@ -950,5 +901,190 @@ function Buyers_SellersPage() {
     </>
   );
 }
+
+function ProfilePage({ setAuthenticated }) {
+  const [userData, setUserData] = useState(null);
+  const loggedInUserId = localStorage.getItem('userId');
+  const userIdFromUrl = window.location.href.split('/').pop();
+  const [isEditClicked, setIsEditClicked] = useState(false);
+
+
+  useEffect(() => {
+    // Fetch user data from the endpoint using the userId from the URL
+    fetch(`http://localhost:8080/siteuser/${userIdFromUrl}`)
+      .then(response => response.json())
+      .then(data => {
+        setUserData(data);
+      })
+      .catch(error => {
+        console.error('Error fetching user data:', error);
+        // Handle error or redirect to an error page if needed
+      });
+  }, [userIdFromUrl]);
+
+  const handleEditClick = () => {
+    setIsEditClicked(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditClicked(false);
+  };
+
+  return (
+    <>
+      <div className='ProfileContainer' id='SellerProfileContainer'>
+        {userData ? (
+          <div id='SellerProfileDiv'>
+            <div id='SellersInfoDiv'>
+              <div id='SellersProfilePictureDiv'>
+                <img
+                  id='SellersProfilePicture'
+                  src={userData.ProfilePicture ? `${process.env.PUBLIC_URL}/ProfilePhotos/${userData.ProfilePicture}` : 'default-image-path.jpg'}
+                  alt='Photo'
+                />
+              </div>
+              {isEditClicked ? (
+                <EditProfileForm userData={userData} onCancelEdit={handleCancelEdit} />
+              ) : (
+                <>
+                  <button id='EditProfileButton' style={{ marginLeft: '25%' }} onClick={handleEditClick}>
+                    Edit
+                  </button>
+                  <table>
+                    <tbody>
+                      <tr>
+                        <td>Name:</td>
+                        <td>{userData.FirstName + ' ' + userData.LastName}</td>
+                      </tr>
+                      <tr>
+                        <td>Profile Type:</td>
+                        <td>{userData.ProfileType}</td>
+                      </tr>
+                      <tr>
+                        <td>Phone:</td>
+                        <td>{userData.Phone}</td>
+                      </tr>
+                      <tr>
+                        <td>Email:</td>
+                        <td>{userData.Email}</td>
+                      </tr>
+                      <tr>
+                        <td>Location:</td>
+                        <td>{userData.Location}</td>
+                      </tr>
+                      <tr>
+                        <td>Number of Listings Posted:</td>
+                        <td></td>
+                      </tr>
+                      <tr>
+                        <td>Listings Available:</td>
+                        <td></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <button>Email</button>
+                </>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div>Loading...</div>
+        )}
+      </div>
+    </>
+  );
+}
+
+function EditProfileForm({ userData }) {
+  const [editedData, setEditedData] = useState({
+    FirstName: userData.FirstName,
+    LastName: userData.LastName,
+    ProfileType: userData.ProfileType,
+    // Add other fields as needed
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setEditedData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <label>
+        First Name*:
+        <input
+          type="text"
+          name="FirstName"
+          value={editedData.FirstName}
+          onChange={handleChange}
+          required
+        />
+      </label>
+      <br />
+      <label>
+        Last Name*:
+        <input
+          type="text"
+          name="LastName"
+          value={editedData.LastName}
+          onChange={handleChange}
+          required
+        />
+      </label>
+      <br />
+      <label>
+        Profile Type:
+        <input
+          type="text"
+          name="ProfileType"
+          value={editedData.ProfileType}
+          onChange={handleChange}
+        />
+      </label>
+      <br />
+      <label>
+         Phone:
+        <input
+          type="number"
+          name="Phone"
+          value={editedData.Phone}
+          onChange={handleChange}
+        />
+      </label>
+      <br />
+      <label>
+         Location:
+        <input
+          type="text"
+          name="Location"
+          value={editedData.Phone}
+          onChange={handleChange}
+        />
+      </label>
+      <br />
+      <label>
+         About Me:
+        <input
+          type="text"
+          name="About"
+          value={editedData.Phone}
+          onChange={handleChange}
+        />
+      </label>
+      <br />
+      <button id='ProfileSaveChanges' type="submit">Save Changes</button>
+    </form>
+  );
+}
+
 
 export default App;

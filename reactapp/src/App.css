@@ -274,13 +274,13 @@ cursor: pointer;
   display: flex;
 }
 .ListingType img{
-  margin-top: 20%;
+  margin-top: 10%;
 }
 .ListingType p{
   font-size: 11px;
 }
 
-.ListingPosterLogo_Picture{
+.ListingPoster_Picture{
   margin-left: 5px;
   margin-top: 10px;
   border-radius: 40px;
@@ -304,12 +304,16 @@ cursor: pointer;
 }
 .ListingPicturesDiv{
   margin-left: 2%;
+  row-gap:1% ;
+  column-gap:1% ;
+
 }
 .ListingPicturesDiv img{
   max-width: 40%;
-  min-width: 20%;
+  min-width: 40%;
   min-height:100px ;
   max-height:150px ;
+  
 
 }
 
@@ -373,6 +377,8 @@ cursor: pointer;
   border: 1px solid rgb(195, 194, 194);
   background-color: #ffffff;
   border-radius: 3px;
+  height: 280px;
+
 }
 #Buyers_SellersContainer{
   width: 70%;
@@ -393,8 +399,7 @@ grid-row-gap: 50px;
 height: 600px;
 }
 .Buyers_SellerContents{
-  margin-left: 2%;
-  row-gap: 1%;
+  margin-left: 20%;
   margin-top: 2%;
 }
 .Buyers_SellerPhoto{
@@ -402,8 +407,30 @@ height: 600px;
   height: 100px;
   border-radius: 70px;
 }
+
 .ViewProfile{
 background-color: rgb(192, 223, 253);
 border: none;
 cursor: pointer;
+}
+
+.ProfileContainer{
+  width: 70%;
+  margin-top: 6.5%;
+  margin-left: 10%;
+}
+#SellersProfilePicture{
+ height:200px;
+ width:150px;
+
+}
+#EditProfileButton{
+  background-color: rgb(161, 203, 248);
+  border: none;
+  border-radius: 2px;
+}
+#ProfileSaveChanges{
+  background-color: rgb(161, 203, 248);
+  border: none;
+  border-radius: 2px;
 }
