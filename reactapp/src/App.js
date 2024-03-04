@@ -34,7 +34,12 @@ function App() {
         />
         <Route path="/listingfeed" element={<HomePage setAuthenticated={setAuthenticated} />} />
         <Route path="/login" element={<Login_SigUp setAuthenticated={setAuthenticated} />} />
-      
+        <Route path="/listing/:listingId" element={
+            <>
+              <Menue setAuthenticated={setAuthenticated} />
+              <ViewListing />
+            </>
+          } />
           <Route path="/Profile/:profileId" element={
               <>
               <Menue setAuthenticated={setAuthenticated} />
@@ -45,6 +50,8 @@ function App() {
              }  />
 
        
+
+
         <Route path="/buyers_sellers" element={
             <>
               <Menue setAuthenticated={setAuthenticated} />
@@ -123,7 +130,7 @@ function Menue({setAuthenticated }) {
        
         </ul>
       
-      <div id="MenuUserDiv" style={{display:'flex', columnGap:'20px'}}>
+      <div id="MenuUserDiv" style={{display:'flex', columnGap:'5px'}}>
             <img src=''/>
             <div id='MenuUserName'>{localStorage.getItem('userFullName')}</div>
             <div id='MenueLogout'  onClick={handleLogout}>Logout</div>
@@ -190,106 +197,67 @@ function FeedContainer() {
     setListings(filteredListings);
   };
 
-     const handleClearFilterButtonClick = () => {
-      setPropertyTypeFilter('');
-      setPropertyLocationFilter('');
-      setListings(listings);
-    };
   
-
   function CreateListingContainer() {
-    const [uploadedImages, setUploadedImages] = useState([]);
-    const [listingDescription, setListingDescription] = useState('');
-    const [listingLocation, setlistingLocation] = useState('');
-    const [listingType, setlistingType] = useState('');
-  
-    const handleCreateListingClose = () => {
-      setShowCreateListing(false);
-    };
-  
-    const handleImageUpload = (event) => {
-      const files = event.target.files;
-      const newImages = Array.from(files).map((file) => file);
-      setUploadedImages([...uploadedImages, ...newImages]);
-    };
-  
-    const handleImageRemove = (index) => {
-      const updatedImages = [...uploadedImages];
-      updatedImages.splice(index, 1);
-      setUploadedImages(updatedImages);
-    };
-  
+  const [uploadedImages, setUploadedImages] = useState([]);
+  const [listingDescription, setListingDescription] = useState('');
+  const [listingLocation, setlistingLocation] = useState('');
+  const [listingType, setlistingType] = useState('');
 
 
-    
-    const handlePostListingLocal = async () => {
+  const handleCreateListingClose = () => {
+    setShowCreateListing(false);
+  };
+
+  const handleImageUpload = (event) => {
+    const files = event.target.files;
+    const newImages = Array.from(files).map((file) => URL.createObjectURL(file));
+    setUploadedImages([...uploadedImages, ...newImages]);
+  };
+
+  const handleImageRemove = (index) => {
+    const updatedImages = [...uploadedImages];
+    updatedImages.splice(index, 1);
+    setUploadedImages(updatedImages);
+  };
+
+  const handlePostListingLocal = () => {
+    const newListing = {
+      Lister: localStorage.getItem('userId'),
+      ListingId: 'Listing'+new Date()/1000,
+      description: listingDescription,
+      images: uploadedImages,
+      ListingType: listingType,
+      ListingLocation: listingLocation,
+      ListingDate: new Date()/1000,
       
-      
-      const formData = new FormData();
+    };
 
-      uploadedImages.forEach((file, index) => {
-        formData.append(index, file, file.name);
-      });
-      console.log(formData)
-  try {
-    const response = await fetch('http://localhost:8080/uploadlistingphotos', {
-      method: 'POST',
-      body: formData,
-      credentials: 'include',
+  handlePostListing(newListing);
+
+  fetch('http://localhost:8080/PostListing', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(newListing),
+    credentials: 'include',
+})
+    .then((response) => response.json())
+    .then((data) => {
+      console.log('Success:', data);
+    })
+    .catch((error) => {
+      console.error('Error:', error);
     });
 
-    if (response.ok) {
-      console.log('Images uploaded successfully');
-      // Extract information from the response if needed
-      const responseData = await response.json();
-      console.log('Response Data:', responseData);
-    } else {
-      console.error('Failed to upload images');
-    }
-  } catch (error) {
-    console.error('Error during image upload:', error);
-  }
 
-      
-      const newListing = {
-        Lister: localStorage.getItem('userId'),
-        ListingId: 'Listing' + new Date() / 1000,
-        description: listingDescription,
-        images: uploadedImages.map((file) => ({
-          filename: file.name,
-          size: file.size,
-          url: URL.createObjectURL(file),
-        })),
-        ListingType: listingType,
-        ListingLocation: listingLocation,
-        ListingDate: new Date() / 1000,
-      };
-  
-      handlePostListing(newListing);
-  
-      fetch('http://localhost:8080/PostListing', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newListing),
-        credentials: 'include',
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log('Success:', data);
-        })
-        .catch((error) => {
-          console.error('Error:', error);
-        });
-  
-      setUploadedImages([]);
-      setListingDescription('');
-      setlistingLocation('');
-      setlistingType('');
-      setShowCreateListing(false);
-    };
-  
+  setUploadedImages([]);
+  setListingDescription('');
+  setlistingLocation('');
+  setlistingType('');
+  setShowCreateListing(false);
+  };
 
   return (
     <div id='CreateListingContainer' className={showCreateListing ? 'show' : 'hide'}>
@@ -350,8 +318,8 @@ function FeedContainer() {
           />
         </div>
         <div id='UploadedPicsDiv'>
-        {uploadedImages.map((file, index) => (
-            <div key={index} className='uploaded-image-container'>
+          {uploadedImages.map((imageUrl, index) => (
+            <div key={imageUrl} className='uploaded-image-container'>
               <img
                 src={process.env.PUBLIC_URL + '/Web Icons/close_FILL1_wght100_GRAD0_opsz48.png'}
                 alt='Remove Image'
@@ -360,14 +328,12 @@ function FeedContainer() {
                 onClick={() => handleImageRemove(index)}
               />
               <img
-                src={URL.createObjectURL(file)}
+                src={imageUrl}
                 alt={`Uploaded Image ${index + 1}`}
                 style={{ maxWidth: '60px', maxHeight: '60px' }}
               />
-              <p>{file.name}</p> {/* Displaying the filename */}
             </div>
           ))}
-
         </div>
       </div>
       <div>
@@ -426,23 +392,14 @@ function ListingContainer({ listing }) {
       <div id='Poster' onClick={handleCreateListingClick}>
         <div id='PosterButton'>
           <div id='UserImageDiv'>
-            <img   className='LoggedInUserPic' id='UserImage'src={loggedInUser && loggedInUser.ProfilePicture ? `${process.env.PUBLIC_URL}/ProfilePhotos/${loggedInUser.ProfilePicture}` : 'default-image-path.jpg'}
+            <img className='LoggedInUserPic' id='UserImage'src={loggedInUser && loggedInUser.ProfilePicture ? `${process.env.PUBLIC_URL}/ProfilePhotos/${loggedInUser.ProfilePicture}` : 'default-image-path.jpg'}
  alt='Photo'/>
           </div>
           <div id='Listing'>{localStorage.getItem('userFullName')}, click to create a Listing...</div>
         </div>
       </div>
-      <div id='FilteringDiv'>
-        <div className='AllistingsDiv'>
-          <div style={{backgroundColor:'#e6e4e4',cursor:'pointer'}}>All listings</div>
-          <div></div>
-        </div>
-        <div>
-          <div style={{backgroundColor:'#e6e4e4', cursor:'pointer'}}>My listings</div>
-        </div>
-      </div>
       <div>
-          <div id='FeedSearchDiv'>
+          <div id='FeedSearchDiv' style={{marginTop:'5%'}}>
               <div>
                  <label>Propert Type:   
                     <select onChange={handlePropertyTypeChange}>
@@ -465,7 +422,6 @@ function ListingContainer({ listing }) {
                 </label>
              </div>
             <button id='FeedSearchButton'  onClick={handleFilterButtonClick} type='submit'>Filter</button>
-            <button id='ClearFilterButton' onClick={handleClearFilterButtonClick} type='button'>Clear Filter</button>
           </div>
       </div>
       <div id='SearchResults'></div>
@@ -734,7 +690,7 @@ const handleUserSignupClick = (hideLicense) => {
           <div>
             <label>Profile Photo: </label>
             <input id='SignUpProfilePicUploader' type='file' accept='image' placeholder='Profile' style={{display:'none'}} onChange={(e) => handleFileUpload(e.target.files)}/>
-            <img onClick={handleProfilePicClick} id='UploadedProfilePic'  src={process.env.PUBLIC_URL + '/Web Icons/Profile Icon.png'}  height={40} width={40} style={{marginLeft:'6%',marginTop:'5%',marginBottom:'2%',cursor:'pointer',borderRadius:'40px 40x 40px 40px' }} alt='Icon'/>
+            <img onClick={handleProfilePicClick} id='UploadedProfilePic'  src={process.env.PUBLIC_URL + '/Web Icons/Profile Icon.png'}  height={40} width={40} style={{marginLeft:'6%',marginTop:'5%',marginBottom:'2%',cursor:'pointer',borderRadius:'40px 40x 40px 40px' }}/>
           </div>
           <button type='submit' style={{ marginTop:'3%' }} onClick={handleSignupSubmit}>Sign Up</button>
           <a style={{ color: '#5c8bf1', marginLeft:'3%' }} id='SignUp_link'onClick={() => window.location.reload()} >Back to Login</a>
@@ -798,8 +754,49 @@ function ResetPassword() {
 
 
 
+function ViewListingPage({ setAuthenticated }) {
+  return (
+    <>
+      <Menue setAuthenticated={setAuthenticated} />
+      <ViewListing />
+    </>
+  );
+}
 
-
+function ViewListing() {
+  
+  return (
+    <>
+      <div id='ListingDetialsContactContainer'>
+        <div id='ListingDetailsContainer'>
+          <div className='Arrows' id='LeftArrowDiv'><img id='LeftArrow' src={process.env.PUBLIC_URL + '/Web Icons/left-arrow.png'} height={20}width={20} alt='Arrow' />
+          </div>
+          <div id='ListImagesDiv'></div>
+          <div className='Arrows' id='RightArrowDiv'><img id='RightArrow' src={process.env.PUBLIC_URL + '/Web Icons/right-arrow.png'} height={20}width={20} alt='Arrow' />
+          </div>
+          <div id='OnViewListingDescription'></div>
+        </div>
+        <div id='ListingDetailsContactAgentForm'>
+          <div id='ListingDateTypeLocation'>
+              <h3>Listing Details</h3>
+              <label>ListingType:</label>
+              <div id="OnViewListingType"></div>
+              <label>Location:</label>
+              <div id="OnViewListingLocation"></div>
+              <label>Date:</label>
+              <div id="OnViewListingDate" ></div>
+          </div>
+          <h3>Contact Seller</h3>
+          <form>
+            <label>Email:</label><input type="email" placeholder=''/>
+            <label>Message:</label><input type="text" placeholder=''/>
+          </form>
+          <button>Send</button>
+        </div>
+      </div>
+    </>
+  );
+}
 
 function Buyers_SellersPage() {
   const [siteusers, setSiteusers] = useState([]);
@@ -855,8 +852,8 @@ function Buyers_SellersPage() {
                 <p className='Buyers_SellerLocation'>Location: {user.Location}</p>
               </div>
               <div><Link to={`/Profile/${user.Id}`}>
-                  <button className='ViewProfile' id={user.Id}>View Profile</button>
-              </Link></div>
+  <button className='ViewProfile' id={user.Id}>View Profile</button>
+</Link></div>
             </div>
           </div>
         ))}
@@ -982,7 +979,6 @@ function ProfilePage({ setAuthenticated }) {
                       </tr>
                     </tbody>
                   </table>
-                  <button>Email</button>
                 </>
               )}
             </div>

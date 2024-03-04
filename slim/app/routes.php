@@ -83,11 +83,27 @@ return function (App $app) {
             $data = $request->getParsedBody();
     
             $pictureName = $_FILES['profilePic']['name'];
-         
-            
     
             // Get the Capsule instance from the container
             $capsule = $this->get(Capsule::class);
+    
+            // Check if 'siteuser' table exists
+            if (!$capsule->schema()->hasTable('siteuser')) {
+                // Create 'siteuser' table if it doesn't exist
+                $capsule->schema()->create('siteuser', function ($table) {
+                    $table->id(); // Auto-incremental primary key
+                    $table->string('FirstName');
+                    $table->string('LastName');
+                    $table->string('Email');
+                    $table->string('Password');
+                    $table->string('License');
+                    $table->string('ProfileType');
+                    $table->string('ProfilePicture');
+                    $table->string('Location');
+                    $table->string('PasswordResetToken');
+                    // Add other columns as needed
+                });
+            }
     
             // Insert data into 'siteuser' table
             $capsule->table('siteuser')->insert([
@@ -97,7 +113,7 @@ return function (App $app) {
                 'Password' => $data['password'],
                 'License' => $data['license'],
                 'ProfileType' => $data['ProfileType'],
-                'ProfilePicture' =>$pictureName,
+                'ProfilePicture' => $pictureName,
             ]);
     
             // Return a JSON response indicating success
@@ -116,6 +132,7 @@ return function (App $app) {
             return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
         }
     });
+    
 
     //handle profile picture upload
     $app->post('/uploadprofilepic', function (Request $request, Response $response) {
