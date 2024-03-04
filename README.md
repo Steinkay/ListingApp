@@ -1,5 +1,8 @@
 
-In slim folder, go to the app folder, find a file called dependencies.php update this code to match your database connection credentials:
+Reactapp v--"0.1.0"
+Slim 4
+
+Firsttly, In slim folder, go to the app folder, find a file called dependencies.php update this code to match your database connection credentials:
 
  $capsule->addConnection([
                 'driver' => 'mysql',
