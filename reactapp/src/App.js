@@ -568,14 +568,11 @@ const handleUserSignupClick = (hideLicense) => {
   function SignUpForm() {
 
     const handleFileUpload = (files) => {
-      // Check if the selected file is an image
       const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
   
       if (files.length > 0 && allowedTypes.includes(files[0].type)) {
-        // Handle image upload logic here
         console.log('Selected image:', files[0]);
   
-        // You can also set the selected image to be displayed or processed further
         const uploadedImage = URL.createObjectURL(files[0]);
         document.getElementById('UploadedProfilePic').src = uploadedImage;
       } else {
@@ -939,13 +936,17 @@ function ProfilePage({ setAuthenticated }) {
                   src={userData.ProfilePicture ? `${process.env.PUBLIC_URL}/ProfilePhotos/${userData.ProfilePicture}` : 'default-image-path.jpg'}
                   alt='Photo'
                 />
+                <h3></h3>
               </div>
               {isEditClicked ? (
                 <EditProfileForm userData={userData} onCancelEdit={handleCancelEdit} />
               ) : (
                 <>
-                  <button id='EditProfileButton' style={{ marginLeft: '25%' }} onClick={handleEditClick}>
-                    Edit
+                  <button id='EditProfileButton' style={{ marginLeft: '2%' }} onClick={handleEditClick}>
+                    Edit Details
+                  </button>
+                  <button id='EditProfileButton' style={{ marginLeft: '2%' }} onClick={handleEditClick}>
+                    Change Profile Phote
                   </button>
                   <table>
                     <tbody>

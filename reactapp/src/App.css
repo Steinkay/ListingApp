@@ -414,23 +414,83 @@ border: none;
 cursor: pointer;
 }
 
-.ProfileContainer{
-  width: 70%;
-  margin-top: 6.5%;
-  margin-left: 10%;
+/* Profile Container */
+.ProfileContainer {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
 }
-#SellersProfilePicture{
- height:200px;
- width:150px;
 
+/* Profile Div */
+#SellerProfileDiv {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
-#EditProfileButton{
-  background-color: rgb(161, 203, 248);
-  border: none;
-  border-radius: 2px;
+
+#SellersInfoDiv {
+  display: block;
 }
-#ProfileSaveChanges{
-  background-color: rgb(161, 203, 248);
+
+#SellersProfilePictureDiv {
+  margin-right: 20px;
+}
+
+
+#SellersProfilePicture {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+
+#EditProfileButton {
+  background-color: #ade5fb;
+  color: rgb(109, 107, 107);
+  padding: 10px;
   border: none;
-  border-radius: 2px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* Table Styling */
+table {
+  width: 100%;
+  margin-top: 20px;
+  border-collapse: collapse;
+}
+
+table td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Loading Spinner */
+.ProfileContainer  {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height:fit-content;
+  font-size: 1.2em;
+  margin-top: 7%;
+}
+
+/* Responsive Styling */
+@media (max-width: 600px) {
+  #SellersInfoDiv {
+    flex-direction: column;
+  }
+  
+  #SellersProfilePictureDiv {
+    margin-right: 0;
+    margin-bottom: 20px;
+  }
+
+  #EditProfileButton {
+    margin-left: 0;
+    margin-top: 10px;
+  }
 }
