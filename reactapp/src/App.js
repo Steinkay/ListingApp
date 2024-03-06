@@ -945,13 +945,13 @@ function ProfilePage({ setAuthenticated }) {
                   <button id='EditProfileButton' style={{ marginLeft: '2%' }} onClick={handleEditClick}>
                     Edit Details
                   </button>
-                  <button id='EditProfileButton' style={{ marginLeft: '2%' }} onClick={handleEditClick}>
-                    Change Profile Phote
+                  <button id='EditProfileButton' style={{ marginLeft: '2%' }} onClick=''>
+                    Update Photo
                   </button>
                   <table>
                     <tbody>
                       <tr>
-                        <td>Name:</td>
+                        <td id='ProfileUserName'>Name:</td>
                         <td>{userData.FirstName + ' ' + userData.LastName}</td>
                       </tr>
                       <tr>
@@ -983,10 +983,14 @@ function ProfilePage({ setAuthenticated }) {
                 </>
               )}
             </div>
+            
           </div>
+          
+          
         ) : (
           <div>Loading...</div>
         )}
+       
       </div>
     </>
   );

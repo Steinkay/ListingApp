@@ -419,15 +419,19 @@ cursor: pointer;
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
+  margin-top: 7%;
+  display: flex;
+  border: 1px solid #ddd;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 /* Profile Div */
 #SellerProfileDiv {
   background-color: #fff;
-  border: 1px solid #ddd;
+
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+ 
 }
 
 #SellersInfoDiv {
@@ -469,14 +473,6 @@ table td {
 }
 
 /* Loading Spinner */
-.ProfileContainer  {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height:fit-content;
-  font-size: 1.2em;
-  margin-top: 7%;
-}
 
 /* Responsive Styling */
 @media (max-width: 600px) {
