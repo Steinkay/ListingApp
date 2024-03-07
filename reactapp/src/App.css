@@ -231,9 +231,7 @@ cursor: pointer;
     grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
     gap: 8px;
   }
-.uploaded-image-container{
-  display: block;
-}
+
 
 .Listing{
   margin-top: 2%;
@@ -303,17 +301,14 @@ cursor: pointer;
   border-radius: 2px;
 }
 .ListingPicturesDiv{
-  margin-left: 2%;
-  row-gap:1% ;
-  column-gap:1% ;
+  margin-left: 3%;
 
 }
 .ListingPicturesDiv img{
-  max-width: 40%;
-  min-width: 40%;
-  min-height:100px ;
-  max-height:150px ;
-  
+  max-width: 70%;
+  min-width:50%;
+  min-height:300px ;
+  max-height:400px ;
 
 }
 

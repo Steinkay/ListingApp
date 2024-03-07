@@ -415,13 +415,15 @@ function ListingContainer({ listing }) {
 
       </div>
       <div className='ListingPicturesDiv' style={{ marginTop: '1%' }}>
-            {JSON.parse(listing.Images).map((Image, index) => (
-            <img
-                key={index}
-                src={`${process.env.PUBLIC_URL}/ListingPhotos/${Image}`}
-                alt={`Listing Image ${index + 1}`}
-                />
-            ))}
+      {JSON.parse(listing.Images).map((Image, index) => (
+  index === 0 && (
+    <img
+      key={index}
+      src={`${process.env.PUBLIC_URL}/ListingPhotos/${Image}`}
+      alt={`Listing Image ${index + 1}`}
+    />
+  )
+))}
       </div>
       <div className='ListingDescription' style={{ marginTop: '1%' }}>{listing.ListingDescription}</div>
       <div className='ListingActionsDiv' style={{ marginTop: '1%' }}>
