@@ -146,12 +146,13 @@ function Menue({setAuthenticated }) {
 
 function FeedContainer() {
   const [showCreateListing, setShowCreateListing] = useState(false);
-const [listings, setListings] = useState([]);
+  const [listings, setListings] = useState([]);
   const [propertyTypeFilter, setPropertyTypeFilter] = useState('');
   const [propertyLocationFilter, setPropertyLocationFilter] = useState('');
   const [siteuser, setSiteuser] = useState([]);
   const loggedInUserId = localStorage.getItem('userId');
   const loggedInUser = siteuser.find((user) => user.Id === parseInt(loggedInUserId, 10));
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -208,6 +209,7 @@ const [listings, setListings] = useState([]);
     const [listingLocation, setlistingLocation] = useState('');
     const [listingType, setlistingType] = useState('');
     const [loading, setLoading] = useState(false);
+
 
     const handleCreateListingClose = () => {
       setShowCreateListing(false);
@@ -389,15 +391,16 @@ const [listings, setListings] = useState([]);
 }
 
 function ListingContainer({ listing }) {
-  
+    const Lister = siteuser.find((user) => user.Id === parseInt(listing.Lister, 10));
+
   return (
     <div className='Listing' id={listing.ListingId}>
       <div className='ListingHeader'>
         <div className='ListingPosterLogo_PictureDiv'>
-        <img className='ListingPoster_Picture' src={`${process.env.PUBLIC_URL}/ProfilePhotos/${loggedInUser.ProfilePicture}`} alt='ListingerPic' />
+        <img className='ListingPoster_Picture' src={`${process.env.PUBLIC_URL}/ProfilePhotos/${Lister.ProfilePicture}`} alt='ListingerPic' />
         </div>
         <div className='ListingPosterDiv'>
-          <div className='ListingPosterName' style={{marginTop:'10%'}}>{loggedInUser.FirstName+' '+loggedInUser.LastName}</div>
+          <div className='ListingPosterName' style={{marginTop:'10%'}}>{Lister.FirstName+' '+Lister.LastName}</div>
           <div className='ListingPostDate'></div>
         </div>
        
@@ -412,17 +415,19 @@ function ListingContainer({ listing }) {
 
       </div>
       <div className='ListingPicturesDiv' style={{ marginTop: '1%' }}>
-      {JSON.parse(listing.Images).map((Image, index) => (
-  <img
-    key={index}
-    src={`${process.env.PUBLIC_URL}/ListingPhotos/${Image}`}
-    alt={`Listing Image ${index + 1}`}
-  />
-))}
+            {JSON.parse(listing.Images).map((Image, index) => (
+            <img
+                key={index}
+                src={`${process.env.PUBLIC_URL}/ListingPhotos/${Image}`}
+                alt={`Listing Image ${index + 1}`}
+                />
+            ))}
       </div>
       <div className='ListingDescription' style={{ marginTop: '1%' }}>{listing.ListingDescription}</div>
       <div className='ListingActionsDiv' style={{ marginTop: '1%' }}>
          <div>Contact</div>
+         <div>View Listing</div>
+
       </div>
     </div>
   );
@@ -470,7 +475,7 @@ function ListingContainer({ listing }) {
       <div id='SearchResults'></div>
       {showCreateListing && <CreateListingContainer />}
       <div id='ListingsMade'>
-      {listings.map((listing, index) => (
+         {listings.map((listing, index) => (
           <ListingContainer key={index} listing={listing} />
         ))}
       </div>
