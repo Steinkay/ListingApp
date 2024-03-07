@@ -281,9 +281,9 @@ const [listings, setListings] = useState([]);
           ListingType: listingType,
           ListingLocation: listingLocation,
           description: listingDescription,
-          images: ImagesName.map(image => `${process.env.PUBLIC_URL}/ListingPhotos/${image}`),
+          Images: ImagesName.map(image => `${process.env.PUBLIC_URL}/ListingPhotos/${image}`),
         };
-
+        
         setListings([...listings, newListing]);
 
         // Clear state
@@ -391,7 +391,7 @@ const [listings, setListings] = useState([]);
 function ListingContainer({ listing }) {
   
   return (
-    <div className='Listing' id={('Listing'+new Date().getTime() / 1000).toString()}>
+    <div className='Listing' id={listing.ListingId}>
       <div className='ListingHeader'>
         <div className='ListingPosterLogo_PictureDiv'>
         <img className='ListingPoster_Picture' src={`${process.env.PUBLIC_URL}/ProfilePhotos/${loggedInUser.ProfilePicture}`} alt='ListingerPic' />
@@ -412,11 +412,15 @@ function ListingContainer({ listing }) {
 
       </div>
       <div className='ListingPicturesDiv' style={{ marginTop: '1%' }}>
-      {listing.images && listing.images.map((imageUrl, index) => (
-          <img key={index} src={imageUrl} alt={`Listing Image ${index + 1}`} />
-        ))}
+      {JSON.parse(listing.Images).map((Image, index) => (
+  <img
+    key={index}
+    src={`${process.env.PUBLIC_URL}/ListingPhotos/${Image}`}
+    alt={`Listing Image ${index + 1}`}
+  />
+))}
       </div>
-      <div className='ListingDescription' style={{ marginTop: '1%' }}>{listing.description}</div>
+      <div className='ListingDescription' style={{ marginTop: '1%' }}>{listing.ListingDescription}</div>
       <div className='ListingActionsDiv' style={{ marginTop: '1%' }}>
          <div>Contact</div>
       </div>
