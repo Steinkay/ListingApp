@@ -34,7 +34,7 @@ function App() {
         />
         <Route path="/listingfeed" element={<HomePage setAuthenticated={setAuthenticated} />} />
         <Route path="/login" element={<Login_SigUp setAuthenticated={setAuthenticated} />} />
-        <Route path="/listing/:listingId" element={
+        <Route path="/Viewlisting/" element={
             <>
               <Menue setAuthenticated={setAuthenticated} />
               <ViewListing />
@@ -153,15 +153,15 @@ function FeedContainer() {
   const loggedInUserId = localStorage.getItem('userId');
   const loggedInUser = siteuser.find((user) => user.Id === parseInt(loggedInUserId, 10));
   
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch user data
         const userResponse = await axios.get('http://localhost:8080/siteuser');
         setSiteuser(userResponse.data);
   
-        // Fetch listing data
         const listingResponse = await axios.get('http://localhost:8080/listingsmade');
         setListings(listingResponse.data);
       } catch (error) {
@@ -180,6 +180,11 @@ function FeedContainer() {
     setListings([...listings, newListing]);
   };
 
+
+  const handleViewListingClick = () => {
+    navigate('/view-listing');
+  };
+  
   const handlePropertyTypeChange = (event) => {
     setPropertyTypeFilter(event.currentTarget.value);
   };
@@ -383,9 +388,7 @@ function FeedContainer() {
         </button>
         
       </div>
-      {listings.map((listing, index) => (
-          <ListingContainer key={index} listing={listing} />
-        ))}
+     
     </div>
   );
 }
@@ -428,7 +431,9 @@ function ListingContainer({ listing }) {
       <div className='ListingDescription' style={{ marginTop: '1%' }}>{listing.ListingDescription}</div>
       <div className='ListingActionsDiv' style={{ marginTop: '1%' }}>
          <div>Contact</div>
-         <div>View Listing</div>
+         <div className='ViewListing' onClick={handleViewListingClick}>
+          View Listing
+        </div>
 
       </div>
     </div>
@@ -830,8 +835,8 @@ function ViewListing() {
               <label>Date:</label>
               <div id="OnViewListingDate" ></div>
           </div>
-          <h3>Contact Seller</h3>
-          <form>
+          <h3 id='ViewListinPageTile'>Contact Seller</h3>
+          <form id='ContactForm'>
             <label>Email:</label><input type="email" placeholder=''/>
             <label>Message:</label><input type="text" placeholder=''/>
           </form>

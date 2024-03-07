@@ -505,3 +505,70 @@ table td {
     margin-top: 10px;
   }
 }
+
+#ListingDetialsContactContainer {
+  display: flex;
+  justify-content: space-between;
+  margin: 20px;
+  background-color: #cbc6c6;
+  max-width: 70%;
+  min-width: 30%;
+  height: 600px;
+  margin-top: 7%;
+}
+
+#ListingDetailsContainer {
+  width: 60%;
+  border: 1px solid #e7e7e7;
+  padding: 10px;
+}
+
+.Arrows {
+  cursor: pointer;
+}
+
+#ListImagesDiv {
+  height: 300px; /* Set a fixed height for image container */
+  overflow: hidden;
+}
+
+#ListImagesDiv img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+#ListingDetailsContactAgentForm {
+  width: 35%;
+  border: 1px solid #e7e7e7;
+  padding: 10px;
+}
+
+#ListingDateTypeLocation {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+form {
+  margin-bottom: 20px;
+}
+
+input {
+  width: 90%;
+  padding: 8px;
+  margin-bottom: 10px;
+}
+
+button {
+  background-color: rgb(132, 173, 220);
+  color: #515050;
+  padding: 10px;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+}
