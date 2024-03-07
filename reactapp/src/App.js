@@ -680,6 +680,7 @@ const handleUserSignupClick = (hideLicense) => {
         
           document.getElementById('ErrorOnSignUp').innerText = 'Email already exists';
           return; 
+        }
     
         const signupResponse = await fetch('http://localhost:8080/SignUpUser', {
           method: 'POST',
@@ -687,7 +688,7 @@ const handleUserSignupClick = (hideLicense) => {
         });
     
         if (signupResponse.ok) {
-        
+          // Successful signup, handle accordingly
           console.log('Signup successful');
         } else {
           console.error('Signup failed');
