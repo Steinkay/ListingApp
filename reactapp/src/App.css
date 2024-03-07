@@ -420,7 +420,6 @@ cursor: pointer;
   margin: 0 auto;
   padding: 20px;
   margin-top: 7%;
-  display: flex;
   border: 1px solid #ddd;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
@@ -431,7 +430,8 @@ cursor: pointer;
 
   border-radius: 8px;
   padding: 20px;
- 
+  display: flex;
+
 }
 
 #SellersInfoDiv {

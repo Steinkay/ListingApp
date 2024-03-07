@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+
 use App\Application\Actions\User\ListUsersAction;
 use App\Application\Actions\User\ViewUserAction;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -11,13 +12,22 @@ use Slim\Interfaces\RouteCollectorProxyInterface as Group;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use App\Services\Functions;
 
+
 return function (App $app) {
     $app->options('/{routes:.*}', function (Request $request, Response $response) {
-        // CORS Pre-Flight OPTIONS Request Handler
         return $response;
+        
     });
 
-    $app->add('cors');
+    $app->add(new \Tuupola\Middleware\CorsMiddleware([
+        'origin' => ['http://localhost:3000'], 
+        'methods' => ['GET', 'POST', 'PUT', 'DELETE'],
+        'headers.allow' => ['Content-Type', 'Authorization'], 
+        'headers.expose' => [],
+        'credentials' => true,
+        'cache' => 0,
+    ]));
+    
     $app->post('/listings', [\App\ListingController::class, 'createListing']);
 
     $app->get('/', function (Request $request, Response $response) {
@@ -49,32 +59,31 @@ return function (App $app) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
-    //sends listing data into database
     $app->post('/PostListing', function (Request $request, Response $response) {
         // Access request data
         $data = $request->getParsedBody();
-
+    
         // Get the Capsule instance from the container
         $capsule = $this->get(Capsule::class);
-        $imagesString = json_encode($data['images']);
-
+    
         // Insert data into 'listings' table
         $capsule->table('listings')->insert([
             'Lister' => $data['Lister'],
             'ListingId' => $data['ListingId'],
             'ListingDescription' => $data['description'],
-            'Images' => $imagesString,
             'ListingType' => $data['ListingType'],
             'ListingLocation' => $data['ListingLocation'],
             'ListingDate' => $data['ListingDate'],
+            'Images' => json_encode($data['images']), // Store image names as a JSON array
         ]);
-
+    
         // Return a JSON response indicating success
         $responseData = ['message' => 'Listing created successfully'];
         $response->getBody()->write(json_encode($responseData));
-
+    
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
     });
+
 
     //Handle user signup
     $app->post('/SignUpUser', function (Request $request, Response $response) {
@@ -168,28 +177,29 @@ return function (App $app) {
         }
     });
 
-    $app->post('/uploadlistingphotos', function (Request $request, Response $response) {
+    $app->post('/listingimages', function (Request $request, Response $response) {
         try {
-            // Retrieve binary image data from the request body
-            $imageData = $request->getBody()->getContents();
-    
-           echo $imageData;
-            // Generate a unique filename or use a specific naming convention
-            $filename = 'image_' . uniqid() . '.jpg';
-    
+            $uploadedFiles = $request->getUploadedFiles()['images'];
+            
+            // Debugging output
             $destinationPath = '../../reactapp/public/ListingPhotos/';
     
             if (!file_exists($destinationPath)) {
                 mkdir($destinationPath, 0777, true);
             }
     
-            // Save the binary image data to a file
-            file_put_contents($destinationPath . $filename, $imageData);
+            foreach ($uploadedFiles as $uploadedFile) {
+                $filename = $uploadedFile->getClientFilename();
+                error_log('Received file: ' . $filename);
     
-            error_log('File saved successfully to: ' . $destinationPath . $filename);
+                // Move each uploaded file to the destination path
+                $uploadedFile->moveTo($destinationPath . $filename);
+                
+                error_log('File moved successfully to: ' . $destinationPath . $filename);
+            }
     
             // Respond with a JSON success message
-            $response->getBody()->write(json_encode(['message' => 'File uploaded successfully']));
+            $response->getBody()->write(json_encode(['message' => 'Files uploaded successfully']));
     
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
         } catch (\Exception $e) {
@@ -202,7 +212,6 @@ return function (App $app) {
             return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
         }
     });
-
     
 
     //Api created to hand password reset

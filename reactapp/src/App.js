@@ -146,7 +146,7 @@ function Menue({setAuthenticated }) {
 
 function FeedContainer() {
   const [showCreateListing, setShowCreateListing] = useState(false);
-  const [listings, setListings] = useState([]);
+const [listings, setListings] = useState([]);
   const [propertyTypeFilter, setPropertyTypeFilter] = useState('');
   const [propertyLocationFilter, setPropertyLocationFilter] = useState('');
   const [siteuser, setSiteuser] = useState([]);
@@ -154,20 +154,22 @@ function FeedContainer() {
   const loggedInUser = siteuser.find((user) => user.Id === parseInt(loggedInUserId, 10));
 
   useEffect(() => {
-    const fetchSiteuserData = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/siteuser');
-        setSiteuser(response.data);
+        // Fetch user data
+        const userResponse = await axios.get('http://localhost:8080/siteuser');
+        setSiteuser(userResponse.data);
+  
+        // Fetch listing data
+        const listingResponse = await axios.get('http://localhost:8080/listingsmade');
+        setListings(listingResponse.data);
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error('Error fetching data:', error);
       }
     };
-
-    fetchSiteuserData();
+  
+    fetchData();
   }, []);
-
-
-
 
   const handleCreateListingClick = () => {
     setShowCreateListing(true);
@@ -193,72 +195,108 @@ function FeedContainer() {
       return typeMatches && locationMatches;
     });
 
-
     setListings(filteredListings);
   };
 
+
+
   
   function CreateListingContainer() {
-  const [uploadedImages, setUploadedImages] = useState([]);
-  const [listingDescription, setListingDescription] = useState('');
-  const [listingLocation, setlistingLocation] = useState('');
-  const [listingType, setlistingType] = useState('');
+    const [uploadedImages, setUploadedImages] = useState([]);
+    const [uploadedImagesfiles, setUploadedImagesfiles] = useState([]);
+    const [listingDescription, setListingDescription] = useState('');
+    const [listingLocation, setlistingLocation] = useState('');
+    const [listingType, setlistingType] = useState('');
+    const [loading, setLoading] = useState(false);
 
-
-  const handleCreateListingClose = () => {
-    setShowCreateListing(false);
-  };
-
-  const handleImageUpload = (event) => {
-    const files = event.target.files;
-    const newImages = Array.from(files).map((file) => URL.createObjectURL(file));
-    setUploadedImages([...uploadedImages, ...newImages]);
-  };
-
-  const handleImageRemove = (index) => {
-    const updatedImages = [...uploadedImages];
-    updatedImages.splice(index, 1);
-    setUploadedImages(updatedImages);
-  };
-
-  const handlePostListingLocal = () => {
-    const newListing = {
-      Lister: localStorage.getItem('userId'),
-      ListingId: 'Listing'+new Date()/1000,
-      description: listingDescription,
-      images: uploadedImages,
-      ListingType: listingType,
-      ListingLocation: listingLocation,
-      ListingDate: new Date()/1000,
-      
+    const handleCreateListingClose = () => {
+      setShowCreateListing(false);
     };
 
-  handlePostListing(newListing);
+    let ImagesName = [];
+    
+    const handleImageUpload = (event) => {
+      const files = event.target.files;
+      const newImages = Array.from(files).map((file) => URL.createObjectURL(file));
+      setUploadedImagesfiles([...uploadedImagesfiles, ...files]);
+      setUploadedImages([...uploadedImages, ...newImages]);
+    };
 
-  fetch('http://localhost:8080/PostListing', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(newListing),
-    credentials: 'include',
-})
-    .then((response) => response.json())
-    .then((data) => {
-      console.log('Success:', data);
-    })
-    .catch((error) => {
-      console.error('Error:', error);
-    });
+    const handleImageRemove = (index) => {
+      const updatedImages = [...uploadedImages];
+      updatedImages.splice(index, 1);
+      setUploadedImages(updatedImages);
 
+      const updatedFiles = [...uploadedImagesfiles];
+      updatedFiles.splice(index, 1);
+      setUploadedImagesfiles(updatedFiles);
+    };
 
-  setUploadedImages([]);
-  setListingDescription('');
-  setlistingLocation('');
-  setlistingType('');
-  setShowCreateListing(false);
-  };
+    const handlePostListingLocal = async (e) => {
+      e.preventDefault();
 
+      try {
+        const formDataImages = new FormData();
+        uploadedImagesfiles.forEach((file, index) => {
+          formDataImages.append(`images[${index}]`, file);
+        });
+
+        const imagesResponse = await fetch('http://localhost:8080/listingimages', {
+          method: 'POST',
+          body: formDataImages,
+          credentials: 'include',
+        });
+
+        const imagesData = await imagesResponse.json();
+        console.log('Success uploading images:', imagesData);
+        setLoading(false);
+
+        for (let i = 0; i < uploadedImagesfiles.length; i++) {
+          ImagesName.push(uploadedImagesfiles[i].name);
+        }
+
+        const listingPayload = {
+          Lister: localStorage.getItem('userId'),
+          ListingId: 'Listing' + new Date().getTime() / 1000,
+          description: listingDescription,
+          images: ImagesName,
+          ListingType: listingType,
+          ListingLocation: listingLocation,
+          ListingDate: new Date().getTime() / 1000,
+        };
+
+        const listingResponse = await fetch('http://localhost:8080/PostListing', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(listingPayload),
+          credentials: 'include',
+        });
+
+        const listingData = await listingResponse.json();
+        console.log('Success creating listing:', listingData);
+
+        const newListing = {
+          ListingType: listingType,
+          ListingLocation: listingLocation,
+          description: listingDescription,
+          images: ImagesName.map(image => `${process.env.PUBLIC_URL}/ListingPhotos/${image}`),
+        };
+
+        setListings([...listings, newListing]);
+
+        // Clear state
+        setUploadedImages([]);
+        setLoading(false);
+
+      } catch (error) {
+        console.error('Error:', error);
+        setLoading(false);
+        // Handle errors if needed
+      }
+    };
+     
   return (
     <div id='CreateListingContainer' className={showCreateListing ? 'show' : 'hide'}>
       <div id='CreateListingTitleAndCloseIconSection'>
@@ -338,9 +376,14 @@ function FeedContainer() {
       </div>
       <div>
         <button id='PostListingButton' onClick={handlePostListingLocal}>
-          Post
+        {loading ? 'Posting...' : 'Post'}
+
         </button>
+        
       </div>
+      {listings.map((listing, index) => (
+          <ListingContainer key={index} listing={listing} />
+        ))}
     </div>
   );
 }
@@ -369,12 +412,8 @@ function ListingContainer({ listing }) {
 
       </div>
       <div className='ListingPicturesDiv' style={{ marginTop: '1%' }}>
-        {listing.images.map((imageUrl, index) => (
-       
-        
-              <img src={imageUrl} alt={`Listing Image ${index + 1}`} />
-          
-        
+      {listing.images && listing.images.map((imageUrl, index) => (
+          <img key={index} src={imageUrl} alt={`Listing Image ${index + 1}`} />
         ))}
       </div>
       <div className='ListingDescription' style={{ marginTop: '1%' }}>{listing.description}</div>
@@ -427,7 +466,7 @@ function ListingContainer({ listing }) {
       <div id='SearchResults'></div>
       {showCreateListing && <CreateListingContainer />}
       <div id='ListingsMade'>
-        {listings.map((listing, index) => (
+      {listings.map((listing, index) => (
           <ListingContainer key={index} listing={listing} />
         ))}
       </div>
@@ -983,7 +1022,9 @@ function ProfilePage({ setAuthenticated }) {
                 </>
               )}
             </div>
-            
+            <div id='ListingsByUser'>
+               <div><h3>Listings by  {userData.FirstName + ' ' + userData.LastName}</h3></div>
+            </div>
           </div>
           
           
