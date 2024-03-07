@@ -233,85 +233,105 @@ cursor: pointer;
   }
 
 
-.Listing{
-  margin-top: 2%;
-  width: 60%;
-  height: fit-content;
-  border:0.1px solid #e7e7e7 ;
-}
-.ListingHeader{
-  display: flex;
-  column-gap: 15px;
-  margin-left: 2%;
-}
-.ListingDescription{
-  margin-left: 2%;
-
-}
-
-.ListingLocation{
-  margin-top: 4%;
-  margin-left: 1%;
-  display: flex;
-}
-.ListingLocation img{
-  margin-top: 20%;
-}
-.ListingLocation p{
-  font-size: 11px;
-}
-.ViewListing{
-  background-color:rgb(132, 173, 220) ;
-  color: #515050;
-  padding: 2px;
-}
-
-.ListingType{
-  margin-top: 4%;
-  margin-left: 20%;
-  display: flex;
-}
-.ListingType img{
-  margin-top: 10%;
-}
-.ListingType p{
-  font-size: 11px;
-}
-
-.ListingPoster_Picture{
-  margin-left: 5px;
-  margin-top: 10px;
-  border-radius: 40px;
-  width: 40px;
-  height: 40px;
-}
-.ListingPosterDiv{
- column-gap: 10px;
-}
-.ListingActionsDiv{
-  margin-left: 2%;
-  display: flex;
-  column-gap: 10px;
-}
-.ListingActionsDiv div{
-  padding: 3px;
-  font-size: 12px;
-  cursor: pointer;
-  background-color:rgb(132, 173, 220) ;
-  border-radius: 2px;
-}
-.ListingPicturesDiv{
-  margin-left: 3%;
-
-}
-.ListingPicturesDiv img{
-  max-width: 70%;
-  min-width:50%;
-  min-height:300px ;
-  max-height:400px ;
-
-}
-
+  .Listing {
+    margin-top: 2%;
+    width: 60%;
+    height: fit-content;
+    border: 1px solid #e7e7e7;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+  }
+  
+  .ListingHeader {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background-color: #f5f5f5;
+  }
+  
+  .ListingDescription {
+    margin: 15px;
+  }
+  
+  .ListingLocation {
+    margin-top: 10px;
+    margin-left: 15px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .ListingLocation img {
+    margin-right: 5px;
+  }
+  
+  .ListingLocation p {
+    font-size: 14px;
+  }
+  
+  .ViewListing {
+    background-color: rgb(132, 173, 220);
+    color: #515050;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .ListingType {
+    margin-top: 10px;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+  }
+  
+  .ListingType img {
+    margin-right: 5px;
+  }
+  
+  .ListingType p {
+    font-size: 14px;
+  }
+  
+  .ListingPoster_Picture {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+  }
+  
+  .ListingPosterDiv {
+    display: flex;
+    align-items: center;
+    column-gap: 10px;
+  }
+  
+  .ListingActionsDiv {
+    margin: 15px;
+    display: flex;
+    column-gap: 10px;
+  }
+  
+  .ListingActionsDiv div {
+    padding: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    background-color: rgb(132, 173, 220);
+    color: #515050;
+    border-radius: 4px;
+  }
+  
+  .ListingPicturesDiv {
+    margin: 15px;
+  }
+  
+  .ListingPicturesDiv img {
+    width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  
 #ListingDetialsContactContainer{
   width:80%;
   height:400px;

@@ -655,20 +655,17 @@ const handleUserSignupClick = (hideLicense) => {
       .then(response => response.json())
       .then(data => {
           console.log(data);
-          // Handle the response from the server (success or error)
       })
       .catch(error => {
           console.error('Error uploading profile pic:', error);
-          // Handle the error
       });
     
-      // Always append the license field, whether it's empty or not
       const formData = new FormData();
       formData.append('firstName', firstName);
       formData.append('lastName', lastName);
       formData.append('email', email);
       formData.append('password', password);
-      formData.append('license', license);  // Assuming 'license' is defined somewhere in your code
+      formData.append('license', license);  
       formData.append('ProfileType', ProfileType);
       formData.append('profilePic', document.getElementById('SignUpProfilePicUploader').files[0]);
     
@@ -676,14 +673,13 @@ const handleUserSignupClick = (hideLicense) => {
         const usersResponse = await fetch('http://localhost:8080/siteuser');
         const users = await usersResponse.json();
     
-        // Check if the user with the provided email already exists
+    
         const userExists = users.some((user) => user.Email.toLowerCase() === email.toLowerCase());
     
         if (userExists) {
-          // Display error message
+        
           document.getElementById('ErrorOnSignUp').innerText = 'Email already exists';
-          return; // Stop further execution
-        }
+          return; 
     
         const signupResponse = await fetch('http://localhost:8080/SignUpUser', {
           method: 'POST',
@@ -691,7 +687,7 @@ const handleUserSignupClick = (hideLicense) => {
         });
     
         if (signupResponse.ok) {
-          // Successful signup, handle accordingly
+        
           console.log('Signup successful');
         } else {
           console.error('Signup failed');
