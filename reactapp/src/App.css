@@ -349,11 +349,7 @@ display: flex;
 column-gap: 1%;
 
 } 
-#ListImagesDiv{
-  height: 400px;
-  width:90%;
-  background-color: #e7e7e7;
-}
+
 .Arrows{
   margin-top: 20%;
 }
@@ -510,17 +506,20 @@ table td {
   display: flex;
   justify-content: space-between;
   margin: 20px;
-  background-color: #cbc6c6;
   max-width: 70%;
   min-width: 30%;
   height: 600px;
   margin-top: 7%;
 }
 
-#ListingDetailsContainer {
-  width: 60%;
+#ListingDetailsContainerDiv{
+  width:60%;
   border: 1px solid #e7e7e7;
   padding: 10px;
+}
+#ListingDetailsContainer {
+ background-color: #e7e7e7;
+ width:100%;
 }
 
 .Arrows {
@@ -528,8 +527,10 @@ table td {
 }
 
 #ListImagesDiv {
-  height: 300px; /* Set a fixed height for image container */
   overflow: hidden;
+  height: 400px;
+  width:100%;
+ 
 }
 
 #ListImagesDiv img {

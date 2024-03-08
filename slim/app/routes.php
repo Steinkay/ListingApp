@@ -21,12 +21,16 @@ return function (App $app) {
 
     $app->add(new \Tuupola\Middleware\CorsMiddleware([
         'origin' => ['http://localhost:3000'], 
-        'methods' => ['GET', 'POST', 'PUT', 'DELETE'],
-        'headers.allow' => ['Content-Type', 'Authorization'], 
+        'methods' => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        'headers.allow' => ['Content-Type', 'Authorization'],
         'headers.expose' => [],
         'credentials' => true,
         'cache' => 0,
     ]));
+    $app->add(function ($request, $handler) {
+        error_log('CORS Middleware executed');
+        return $handler->handle($request);
+    });
     
     $app->post('/listings', [\App\ListingController::class, 'createListing']);
 
@@ -275,6 +279,25 @@ return function (App $app) {
         return $response;
     });
 
+     //Helps displaying user Profile by targeting id
+     $app->get('/listings/listing1709850231.833', function (Request $request, Response $response, array $args) {
+        $listingId = $args['listingId'];
+        
+        $ListingData = Capsule::table('listings')
+            ->where('ListingId', $listingId)
+            ->first();  
+        
+        if (!$ListingData) {
+            $response = $response->withStatus(404)
+                ->withHeader('Content-Type', 'application/json');
+            $response->getBody()->write(json_encode(['error' => 'User not found']));
+            return $response;
+        }
+        
+        $response = $response->withHeader('Content-Type', 'application/json');
+        $response->getBody()->write(json_encode($ListingData));
+        return $response;
+    });
 
 
 

@@ -34,7 +34,7 @@ function App() {
         />
         <Route path="/listingfeed" element={<HomePage setAuthenticated={setAuthenticated} />} />
         <Route path="/login" element={<Login_SigUp setAuthenticated={setAuthenticated} />} />
-        <Route path="/Viewlisting/" element={
+        <Route path="/listings/:listingId" element={
             <>
               <Menue setAuthenticated={setAuthenticated} />
               <ViewListing />
@@ -181,8 +181,8 @@ function FeedContainer() {
   };
 
 
-  const handleViewListingClick = () => {
-    navigate('/view-listing');
+  const handleViewListingClick = (listingId) => {
+    navigate(`/listings/${listingId}`);
   };
   
   const handlePropertyTypeChange = (event) => {
@@ -264,7 +264,7 @@ function FeedContainer() {
 
         const listingPayload = {
           Lister: localStorage.getItem('userId'),
-          ListingId: 'Listing' + new Date().getTime() / 1000,
+          ListingId: 'listing' + new Date().getTime() / 1000,
           description: listingDescription,
           images: ImagesName,
           ListingType: listingType,
@@ -431,7 +431,7 @@ function ListingContainer({ listing }) {
       <div className='ListingDescription' style={{ marginTop: '1%' }}>{listing.ListingDescription}</div>
       <div className='ListingActionsDiv' style={{ marginTop: '1%' }}>
          <div>Contact</div>
-         <div className='ViewListing' onClick={handleViewListingClick}>
+         <div className='ViewListing'  onClick={() => handleViewListingClick(listing.ListingId)}>
           View Listing
         </div>
 
@@ -803,42 +803,105 @@ function ResetPassword() {
 
 
 
-function ViewListingPage({ setAuthenticated }) {
-  return (
-    <>
-      <Menue setAuthenticated={setAuthenticated} />
-      <ViewListing />
-    </>
-  );
-}
-
 function ViewListing() {
+  const listingId = window.location.href.split('/').pop();
+  const [listingDetails, setListingDetails] = useState([]);
+  const [listingImages, setListingImages] = useState([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+
+  useEffect(() => {
+    // Fetch user data from the endpoint using the userId from the URL
+    fetch(`http://localhost:8080/listingsmade`)
+      .then(response => response.json())
+      .then(data => {
+        for(let i=0; i<data.length;i++){
+          if(listingId===data[i].ListingId){
+            setListingDetails(data[i]); 
+            setListingImages(JSON.parse(data[i].Images)) 
+          }
+        }
+        
+      
+        // Use setListingsMade to update the state
+      })
+      .catch(error => {
+        console.error('Error fetching user data:', error);
+        // Handle error or redirect to an error page if needed
+      });
+  },  [listingId]) 
+
+  const handleNextImage = () => {
+    setCurrentImageIndex(prevIndex =>
+      prevIndex === listingImages.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const handlePrevImage = () => {
+    setCurrentImageIndex(prevIndex =>
+      prevIndex === 0 ? listingImages.length - 1 : prevIndex - 1
+    );
+  };
   
+ 
+
   return (
     <>
-      <div id='ListingDetialsContactContainer'>
-        <div id='ListingDetailsContainer'>
-          <div className='Arrows' id='LeftArrowDiv'><img id='LeftArrow' src={process.env.PUBLIC_URL + '/Web Icons/left-arrow.png'} height={20}width={20} alt='Arrow' />
+      <div id="ListingDetialsContactContainer">
+        <div id="ListingDetailsContainerDiv">
+          <div id="ListingDetailsContainer">
+            <div className="Arrows" id="LeftArrowDiv" onClick={handlePrevImage}>
+              <img
+                id="LeftArrow"
+                src={process.env.PUBLIC_URL + '/Web Icons/left-arrow.png'}
+                height={20}
+                width={20}
+                alt="Arrow"
+              />
+            </div>
+            <div id="ListImagesDiv">
+              <img
+                className="ListingImage"
+                src={`${process.env.PUBLIC_URL}/ListingPhotos/` +
+                  listingImages[currentImageIndex]}
+                alt="Image"
+              />
+            </div>
+            <div
+              className="Arrows"
+              id="RightArrowDiv"
+              onClick={handleNextImage}
+            >
+              <img
+                id="RightArrow"
+                src={process.env.PUBLIC_URL + '/Web Icons/right-arrow.png'}
+                height={20}
+                width={20}
+                alt="Arrow"
+              />
+            </div>
           </div>
-          <div id='ListImagesDiv'></div>
-          <div className='Arrows' id='RightArrowDiv'><img id='RightArrow' src={process.env.PUBLIC_URL + '/Web Icons/right-arrow.png'} height={20}width={20} alt='Arrow' />
+          <div id="OnViewListingDescription">
+            {listingDetails.ListingDescription}
           </div>
-          <div id='OnViewListingDescription'></div>
         </div>
-        <div id='ListingDetailsContactAgentForm'>
-          <div id='ListingDateTypeLocation'>
-              <h3>Listing Details</h3>
-              <label>ListingType:</label>
-              <div id="OnViewListingType"></div>
-              <label>Location:</label>
-              <div id="OnViewListingLocation"></div>
-              <label>Date:</label>
-              <div id="OnViewListingDate" ></div>
+
+        <div id="ListingDetailsContactAgentForm">
+          <div id="ListingDateTypeLocation">
+            <h3>Listing Details</h3>
+            <label>ListingType: {listingDetails.ListingType}</label>
+            <div id="OnViewListingType"></div>
+            <label>Location:{listingDetails.ListingLocation}</label>
+            <div id="OnViewListingLocation"></div>
+            <label>Date:</label>
+            <div id="OnViewListingDate"></div>
           </div>
-          <h3 id='ViewListinPageTile'>Contact Seller</h3>
-          <form id='ContactForm'>
-            <label>Email:</label><input type="email" placeholder=''/>
-            <label>Message:</label><input type="text" placeholder=''/>
+          <h3 id="ViewListinPageTile">Contact Seller</h3>
+          <form id="ContactForm">
+            <label>Email:</label>
+            <input type="email" placeholder="" />
+            <label>Message:</label>
+            <input type="text" placeholder="" />
           </form>
           <button>Send</button>
         </div>
@@ -846,6 +909,9 @@ function ViewListing() {
     </>
   );
 }
+
+ 
+
 
 function Buyers_SellersPage() {
   const [siteusers, setSiteusers] = useState([]);
