@@ -47,7 +47,17 @@ function App() {
               
               </>
           
-             }  />
+             }  
+          />
+          <Route path="/messaging/" element={
+              <>
+              <Menue setAuthenticated={setAuthenticated} />
+              <MessagePage />
+              
+              </>
+          
+             }  
+          />
 
        
 
@@ -126,6 +136,9 @@ function Menue({setAuthenticated }) {
           </a>
            <Link to='/buyers_sellers'>
             <div >Buyers&Sellers</div>
+          </Link>
+          <Link to='/messaging'>
+            <div >Messages</div>
           </Link>
        
         </ul>
@@ -805,52 +818,74 @@ function ResetPassword() {
 
 function ViewListing() {
   const listingId = window.location.href.split('/').pop();
-  const [listingDetails, setListingDetails] = useState([]);
+  const [listingDetails, setListingDetails] = useState({});
+  const [listerDetails, setListerDetails] = useState({});
   const [listingImages, setListingImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-
   useEffect(() => {
-    // Fetch user data from the endpoint using the userId from the URL
+    // Fetch listing data from the endpoint using the listingId from the URL
     fetch(`http://localhost:8080/listingsmade`)
       .then(response => response.json())
       .then(data => {
-        for(let i=0; i<data.length;i++){
-          if(listingId===data[i].ListingId){
-            setListingDetails(data[i]); 
-            setListingImages(JSON.parse(data[i].Images)) 
-          }
+        const listing = data.find(item => item.ListingId === listingId);
+        if (listing) {
+          setListingDetails(listing);
+          setListingImages(JSON.parse(listing.Images));
         }
-        
-      
-        // Use setListingsMade to update the state
       })
       .catch(error => {
-        console.error('Error fetching user data:', error);
+        console.error('Error fetching listing data:', error);
         // Handle error or redirect to an error page if needed
       });
-  },  [listingId]) 
+  }, [listingId]);
 
-  const handleNextImage = () => {
+  useEffect(() => {
+    // Fetch lister data using the listerId from listingDetails
+    fetch(`http://localhost:8080/siteuser`)
+      .then(response => response.json())
+      .then(data => {
+        const lister = data.find(item => item.Id === listingDetails.Lister);
+        if (lister) {
+          setListerDetails(lister);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching lister data:', error);
+        // Handle error or redirect to an error page if needed
+      });
+  }, [listingDetails]);
+
+  const NextImageFunction = () => {
     setCurrentImageIndex(prevIndex =>
       prevIndex === listingImages.length - 1 ? 0 : prevIndex + 1
     );
   };
 
-  const handlePrevImage = () => {
+  const PreviousImageFunction = () => {
     setCurrentImageIndex(prevIndex =>
       prevIndex === 0 ? listingImages.length - 1 : prevIndex - 1
     );
   };
+
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June', 'July',
+    'August', 'September', 'October', 'November', 'December'
+  ];
   
- 
+  const listingDate = new Date(listingDetails.ListingDate * 1000);
+  const formattedDate = `${months[listingDate.getMonth()]} ${listingDate.getDate()}, ${listingDate.getFullYear()}`;
 
   return (
     <>
+      <div id='ListingTitleDiv'>
+        <h2 id='ListingTitle'>Listing Title</h2>
+      </div>
+
       <div id="ListingDetialsContactContainer">
         <div id="ListingDetailsContainerDiv">
           <div id="ListingDetailsContainer">
-            <div className="Arrows" id="LeftArrowDiv" onClick={handlePrevImage}>
+            <div className="Arrows" id="LeftArrowDiv" onClick={PreviousImageFunction}>
               <img
                 id="LeftArrow"
                 src={process.env.PUBLIC_URL + '/Web Icons/left-arrow.png'}
@@ -862,15 +897,14 @@ function ViewListing() {
             <div id="ListImagesDiv">
               <img
                 className="ListingImage"
-                src={`${process.env.PUBLIC_URL}/ListingPhotos/` +
-                  listingImages[currentImageIndex]}
+                src={`${process.env.PUBLIC_URL}/ListingPhotos/${listingImages[currentImageIndex]}`}
                 alt="Image"
               />
             </div>
             <div
               className="Arrows"
               id="RightArrowDiv"
-              onClick={handleNextImage}
+              onClick={NextImageFunction}
             >
               <img
                 id="RightArrow"
@@ -889,28 +923,26 @@ function ViewListing() {
         <div id="ListingDetailsContactAgentForm">
           <div id="ListingDateTypeLocation">
             <h3>Listing Details</h3>
-            <label>ListingType: {listingDetails.ListingType}</label>
-            <div id="OnViewListingType"></div>
-            <label>Location:{listingDetails.ListingLocation}</label>
-            <div id="OnViewListingLocation"></div>
-            <label>Date:</label>
-            <div id="OnViewListingDate"></div>
+            <label><b>ListingType:</b> {' ' + listingDetails.ListingType}</label>
+            <label><b>Location:</b>{' ' + listingDetails.ListingLocation}</label>
+            <label><b>Date:</b>{' ' + formattedDate}</label>
           </div>
-          <h3 id="ViewListinPageTile">Contact Seller</h3>
-          <form id="ContactForm">
-            <label>Email:</label>
-            <input type="email" placeholder="" />
-            <label>Message:</label>
-            <input type="text" placeholder="" />
-          </form>
-          <button>Send</button>
+          <h3 id="ViewListinPageTile">Contact </h3>
+          <div id='ListerInformation'>
+            <img
+              className='Buyers_SellerPhoto'
+              src={listerDetails.ProfilePicture ? `${process.env.PUBLIC_URL}/ProfilePhotos/${listerDetails.ProfilePicture}` : `${process.env.PUBLIC_URL}/ProfilePhotos/Profile Icon.png`}
+              alt='Profile'
+            />
+            <label><b>Name:</b> {' ' + listerDetails.FirstName + ' ' + listerDetails.LastName}</label>
+            <label><b>Email:</b>{' ' + listerDetails.Email}</label>
+            <button>Message</button>
+          </div>
         </div>
       </div>
     </>
   );
 }
-
- 
 
 
 function Buyers_SellersPage() {
@@ -1019,7 +1051,6 @@ function ProfilePage({ setAuthenticated }) {
   const loggedInUserId = localStorage.getItem('userId');
   const userIdFromUrl = window.location.href.split('/').pop();
   const [isEditClicked, setIsEditClicked] = useState(false);
-
 
   useEffect(() => {
     // Fetch user data from the endpoint using the userId from the URL
@@ -1206,6 +1237,82 @@ function EditProfileForm({ userData }) {
     </form>
   );
 }
+
+
+function MessagePage(){
+
+const [MessageText,SetMessage]=useState('')
+const [Messages, SetMessages] = useState([]);
+
+
+function GetMessagetext(event){
+  SetMessage(event.target.innerHTML)
+}
+
+function onSubmit() {
+  if (MessageText.trim() !== '') {
+    SetMessages([...Messages, MessageText]);
+    SetMessage('');
+  }
+}
+
+  function Message(props){
+    return(
+    <>
+     <div className='Message'>
+         <div className='Sender_Receiver_Div'>
+             <div className='Sender_Receiver_Name'></div>
+         </div>
+         <div className='MessageMedia'></div>
+         <div className='MessageDetails'>{props.text}</div>
+     </div>
+    </>
+    );
+  }
+
+  function Chats(){
+    return(
+    <>
+     <div className='ChatDiv'>
+        <div classNamed='Chat_Sender_Reciver_PhotoDiv'><img id='Chat_Sender_Reciver_Photo'/></div>
+        <div className='Chat_DetailsDiv'>
+          <div className="Chat_Sender_Reciver_Name"></div>
+          <div className='Chat_Details'></div>
+        </div>
+     </div>
+    </>
+    );
+  }
+
+  return(
+    <>
+    <div id='MessageApplication'>
+       <div id='LeftSection'>
+            <div></div>
+            <div id='Chats'></div>
+       </div>
+       <div id='RightSection'>
+            <div id='ReceiverInfo'></div>
+            <div id='MessagesDiv'>
+            {Messages.map((message, index) => (
+              <Message key={index} text={message} />
+            ))}
+            </div>
+            <div id='TextAreaDiv'>
+               <div id='TextArea' onInput={GetMessagetext} contentEditable></div>
+               <button type='submit' onClick={onSubmit} >Send</button>
+
+            </div>
+       </div>
+    </div>
+    </>
+  );
+
+
+}
+
+
+
 
 
 export default App;
