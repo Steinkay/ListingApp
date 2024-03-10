@@ -767,7 +767,7 @@ const handleUserSignupClick = (hideLicense) => {
 
 function ResetPassword() {
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
+  const [message, SetMessageText] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleResetRequest = async () => {
@@ -785,13 +785,13 @@ function ResetPassword() {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage(data.message || 'Password reset successful');
+        SetMessageText(data.message || 'Password reset successful');
       } else {
-        setMessage(data.error || 'Password reset failed');
+        SetMessageText(data.error || 'Password reset failed');
       }
     } catch (error) {
       console.error('Error during password reset request:', error);
-      setMessage('An error occurred during the password reset request');
+      SetMessageText('An error occurred during the password reset request');
     } finally {
       setLoading(false);
     }
@@ -1239,78 +1239,183 @@ function EditProfileForm({ userData }) {
 }
 
 
-function MessagePage(){
+function MessagePage() {
+  const [MessageText, SetMessageText] = useState('');
+  const [Messages, SetMessages] = useState([]);
+  const [Users, GetUsers] = useState([]);
+  const [Sender, GetSender] = useState([]);
+  const [displaySection, setDisplaySection] = useState('Chats');
+  const [UserCicked, SetUserClick] = useState([]);
+  const [ReceiverInfo, setReceiverInfo] = useState(null);
 
-const [MessageText,SetMessage]=useState('')
-const [Messages, SetMessages] = useState([]);
 
 
-function GetMessagetext(event){
-  SetMessage(event.target.innerHTML)
-}
 
-function onSubmit() {
-  if (MessageText.trim() !== '') {
-    SetMessages([...Messages, MessageText]);
-    SetMessage('');
+  useEffect(() => {
+    fetch(`http://localhost:8080/siteuser`)
+      .then(response => response.json())
+      .then(data => {
+        const sender = data.find(item => item.Id === parseInt(localStorage.getItem('userId'), 10));
+        GetSender(sender);
+        GetUsers(data)
+      })
+      .catch(error => {
+        console.error('Error fetching lister data:', error);
+      });
+  }, []);
+
+  useEffect(() => {
+    fetch(`http://localhost:8080/Messages`)
+      .then(response => response.json())
+      .then(data => {
+               data.find(item => item.SenderId === parseInt(localStorage.getItem('userId'), 10)|| item.ReceiverId === parseInt(localStorage.getItem('userId'), 10));
+
+      })
+      .catch(error => {
+        console.error('Error fetching user data:', error);
+      });
+  }, []);
+
+  function GetMessagetext(event) {
+    SetMessageText(event.target.innerHTML);
   }
-}
 
-  function Message(props){
-    return(
-    <>
-     <div className='Message'>
-         <div className='Sender_Receiver_Div'>
-             <div className='Sender_Receiver_Name'></div>
-         </div>
-         <div className='MessageMedia'></div>
-         <div className='MessageDetails'>{props.text}</div>
-     </div>
-    </>
+  function onSubmit() {
+    if (MessageText.trim() !== '') {
+      SetMessages([...Messages, MessageText]);
+      SetMessageText('');
+    }
+  }
+
+
+
+  function Message(props) {
+    return (
+      <div className='Message'>
+        <div className='Sender_Receiver_Div'>
+          <div className='Sender_Receiver_Name'>{props.name}</div>
+        </div>
+        <div className='MessageMedia'></div>
+        <div className='MessageDetails'>{props.text}</div>
+      </div>
     );
   }
 
-  function Chats(){
-    return(
-    <>
-     <div className='ChatDiv'>
-        <div classNamed='Chat_Sender_Reciver_PhotoDiv'><img id='Chat_Sender_Reciver_Photo'/></div>
+  function Chats() {
+    return (
+      <div className='ChatDiv'>
+        <div className='Chat_Sender_Reciver_PhotoDiv'>
+          <img id='Chat_Sender_Reciver_Photo' />
+        </div>
         <div className='Chat_DetailsDiv'>
           <div className="Chat_Sender_Reciver_Name"></div>
           <div className='Chat_Details'></div>
         </div>
-     </div>
-    </>
+      </div>
     );
   }
 
-  return(
-    <>
+  function displayUsers() {
+    function WhenUserClicked(user) {
+      setReceiverInfo({
+        img: user.ProfilePicture,
+        fullName: `${user.FirstName} ${user.LastName}`,
+        userId: user.Id,
+      });
+  
+      useEffect(() => {
+        fetch(`http://localhost:8080/Messages`)
+          .then(response => response.json())
+          .then(data => {
+            const existingRoom = data.find(item => (item.SenderId === parseInt(localStorage.getItem('userId'), 10) && item.ReceiverId === ReceiverInfo.userId) || (item.ReceiverId === parseInt(localStorage.getItem('userId'), 10) && item.SenderId === ReceiverInfo.userId));
+  
+            if (existingRoom) {
+              // If room exists, set ChatRoomId
+              setReceiverInfo(prevReceiverInfo => ({ ...prevReceiverInfo, ChatRoomId: existingRoom.MessageRoom }));
+            } else {
+              // If room doesn't exist, create a new one
+              const newRoomId = `${localStorage.getItem('userId')}_${ReceiverInfo.userId}`;
+              setReceiverInfo(prevReceiverInfo => ({ ...prevReceiverInfo, ChatRoomId: newRoomId }));
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching user data:', error);
+          });
+      }, []); // This empty dependency array ensures the effect runs only once when the component mounts
+    }
+  
+
+
+
+    
+  
+    return (
+      <div>
+        {Users.map(user => (
+          <div key={user.Id} className='UserDiv' onClick={() => WhenUserClicked(user)}>
+            <div className='UserPicDiv'>
+              <img className='UserPic' src={user.ProfilePicture ? `${process.env.PUBLIC_URL}/ProfilePhotos/${user.ProfilePicture}` : `${process.env.PUBLIC_URL}/ProfilePhotos/Profile Icon.png`} alt={`Profile of ${user.FirstName} ${user.LastName}`} />
+            </div>
+            <div className='UserName_Status' style={{ rowGap: '5px' }}>
+              <div className='UserName'>{`${user.FirstName} ${user.LastName}`}</div>
+              <div className='UserStatus'></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
     <div id='MessageApplication'>
-       <div id='LeftSection'>
-            <div></div>
-            <div id='Chats'></div>
-       </div>
-       <div id='RightSection'>
-            <div id='ReceiverInfo'></div>
-            <div id='MessagesDiv'>
-            {Messages.map((message, index) => (
-              <Message key={index} text={message} />
-            ))}
-            </div>
-            <div id='TextAreaDiv'>
-               <div id='TextArea' onInput={GetMessagetext} contentEditable></div>
-               <button type='submit' onClick={onSubmit} >Send</button>
-
-            </div>
-       </div>
+      <div id='LeftSection'>
+        <div style={{ display: 'flex', columnGap: '10%' }}>
+          <div
+            style={{ padding: '5px', cursor: 'pointer', borderBottom: displaySection === 'Chats' ? '2px solid #000' : 'none' }}
+            className='LeftSectionChat_Users'
+            onClick={() => setDisplaySection('Chats')}
+          >
+            Chats
+          </div>
+          <div
+            style={{ padding: '5px', cursor: 'pointer', borderBottom: displaySection === 'Users' ? '2px solid #000' : 'none' }}
+            className='LeftSectionChat_Users'
+            onClick={() => setDisplaySection('Users')}
+          >
+            Users
+          </div>
+        </div>
+        {displaySection === 'Chats' && <Chats />}
+        {displaySection === 'Users' && displayUsers()}
+      </div>
+      <div id='RightSection'>
+      <div id='ReceiverInfo'>
+             {ReceiverInfo && (
+                <>
+                 <div>
+                   <img className='UserPic' src={ReceiverInfo.img ? `${process.env.PUBLIC_URL}/ProfilePhotos/${ReceiverInfo.img}` : `${process.env.PUBLIC_URL}/ProfilePhotos/Profile Icon.png`} alt={`Profile of ${ReceiverInfo.fullName}`} />
+                </div>
+                <div>
+                  <div>{ReceiverInfo.fullName}</div>
+                  <div>{ReceiverInfo.userId}</div>
+                  <div id='ChatRoomID'></div>
+                </div>
+              </>
+  )}
+</div>
+        <div id='MessagesDiv'>
+          {Messages.map((message, index) => (
+            <Message key={index} text={message} />
+          ))}
+        </div>
+        <div id='TextAreaDiv'>
+          <div id='TextArea' onInput={GetMessagetext} contentEditable></div>
+          <button type='submit' onClick={onSubmit}>Send</button>
+        </div>
+      </div>
     </div>
-    </>
   );
-
-
 }
-
 
 
 

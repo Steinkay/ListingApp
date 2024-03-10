@@ -88,6 +88,44 @@ return function (App $app) {
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
     });
 
+    $app->post('/SendMessages', function (Request $request, Response $response) {
+        // Access request data
+        $data = $request->getParsedBody();
+    
+        // Get the Capsule instance from the container
+        $capsule = $this->get(Capsule::class);
+    
+        // Insert data into 'listings' table
+        $capsule->table('messages')->insert([
+            'MessageId' => $data['MessageId'],
+            'MessageRoom' => $data['MessageRoom'],
+            'SenderId' => $data['SenderId'],
+            'ReceiverId' => $data['ReceiverId'],
+            'MessageDetails' => $data['MessageDetails'],
+            'MessageDate' => $data['MessageDate'],
+            'Attachments' => json_encode($data['Attachments']), // Store image names as a JSON array
+        ]);
+
+    
+        // Return a JSON response indicating success
+        $responseData = ['message' => 'Listing created successfully'];
+        $response->getBody()->write(json_encode($responseData));
+    
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+    });
+
+    
+    $app->get('/Messages', function (Request $request, Response $response) {
+        // Get the Capsule instance from the container
+        $capsule = $this->get(\Illuminate\Database\Capsule\Manager::class);
+
+        // Fetch users from the 'siteusers' table
+        $listingsmade = $capsule->table('messages')->get();
+
+        // Convert agents to JSON and send the response
+        $response->getBody()->write(json_encode($listingsmade));
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
     //Handle user signup
     $app->post('/SignUpUser', function (Request $request, Response $response) {
@@ -279,25 +317,6 @@ return function (App $app) {
         return $response;
     });
 
-     //Helps displaying user Profile by targeting id
-     $app->get('/listings/listing1709850231.833', function (Request $request, Response $response, array $args) {
-        $listingId = $args['listingId'];
-        
-        $ListingData = Capsule::table('listings')
-            ->where('ListingId', $listingId)
-            ->first();  
-        
-        if (!$ListingData) {
-            $response = $response->withStatus(404)
-                ->withHeader('Content-Type', 'application/json');
-            $response->getBody()->write(json_encode(['error' => 'User not found']));
-            return $response;
-        }
-        
-        $response = $response->withHeader('Content-Type', 'application/json');
-        $response->getBody()->write(json_encode($ListingData));
-        return $response;
-    });
 
 
 
