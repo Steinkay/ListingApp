@@ -1245,8 +1245,9 @@ function MessagePage() {
   const [Users, GetUsers] = useState([]);
   const [Sender, GetSender] = useState([]);
   const [displaySection, setDisplaySection] = useState('Chats');
-  const [UserCicked, SetUserClick] = useState([]);
+  const [LoggedInUserMessages, SetLoggedInUserMessages] = useState([]);
   const [ReceiverInfo, setReceiverInfo] = useState(null);
+  const [ChatRoom, SetChatoom] = useState(null);
 
 
 
@@ -1264,17 +1265,59 @@ function MessagePage() {
       });
   }, []);
 
+ 
   useEffect(() => {
     fetch(`http://localhost:8080/Messages`)
       .then(response => response.json())
       .then(data => {
-               data.find(item => item.SenderId === parseInt(localStorage.getItem('userId'), 10)|| item.ReceiverId === parseInt(localStorage.getItem('userId'), 10));
-
+        const UsersMessages = data.filter(item =>
+          parseInt(item.SenderId, 10) === parseInt(localStorage.getItem('userId'), 10) ||
+          parseInt(item.ReceiverId, 10) === parseInt(localStorage.getItem('userId'), 10)
+        );
+        SetLoggedInUserMessages(UsersMessages);
       })
       .catch(error => {
-        console.error('Error fetching user data:', error);
+        console.error('Error fetching lister data:', error);
       });
   }, []);
+
+
+  useEffect(() => {
+  
+    if (Messages.length > 0 && ReceiverInfo) {
+      const newMessage = {
+        MessageId:'Message'+new Date()/1000*new Date().getUTCSeconds(), 
+        MessageRoom:ChatRoom,
+        SenderId: parseInt(localStorage.getItem('userId'), 10),
+        ReceiverId: ReceiverInfo.userId,
+        MessageDetails: Messages[Messages.length - 1], 
+        MessageDate: new Date().toISOString(), 
+        Attachments: [], 
+      };
+  
+      // Send the message to the server
+      fetch('http://localhost:8080/SendMessages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newMessage),
+      })
+        .then(response => response.json())
+        .then(data => {
+          // Handle the response if needed
+          console.log('Message sent successfully:', data);
+        })
+        .catch(error => {
+          console.error('Error sending message:', error);
+        });
+    }
+  }, [Messages, ReceiverInfo]);
+
+
+
+
+
 
   function GetMessagetext(event) {
     SetMessageText(event.target.innerHTML);
@@ -1316,36 +1359,32 @@ function MessagePage() {
   }
 
   function displayUsers() {
+
+ 
     function WhenUserClicked(user) {
+      
+      for (let i = 0; i < LoggedInUserMessages.length; i++) {
+        if (LoggedInUserMessages[i].MessageRoom === parseInt(user.Id, 10) + parseInt(localStorage.getItem('userId'), 10)||
+            LoggedInUserMessages[i].MessageRoom === parseInt(user.Id, 10) + parseInt(localStorage.getItem('userId'), 10)
+        ) {
+          SetChatoom(LoggedInUserMessages[i].MessageRoom)
+        } else{
+          SetChatoom(parseInt(localStorage.getItem('userId'), 10)+ parseInt(user.Id, 10) );
+        }
+      }
       setReceiverInfo({
         img: user.ProfilePicture,
         fullName: `${user.FirstName} ${user.LastName}`,
         userId: user.Id,
       });
+
   
-      useEffect(() => {
-        fetch(`http://localhost:8080/Messages`)
-          .then(response => response.json())
-          .then(data => {
-            const existingRoom = data.find(item => (item.SenderId === parseInt(localStorage.getItem('userId'), 10) && item.ReceiverId === ReceiverInfo.userId) || (item.ReceiverId === parseInt(localStorage.getItem('userId'), 10) && item.SenderId === ReceiverInfo.userId));
-  
-            if (existingRoom) {
-              // If room exists, set ChatRoomId
-              setReceiverInfo(prevReceiverInfo => ({ ...prevReceiverInfo, ChatRoomId: existingRoom.MessageRoom }));
-            } else {
-              // If room doesn't exist, create a new one
-              const newRoomId = `${localStorage.getItem('userId')}_${ReceiverInfo.userId}`;
-              setReceiverInfo(prevReceiverInfo => ({ ...prevReceiverInfo, ChatRoomId: newRoomId }));
-            }
-          })
-          .catch(error => {
-            console.error('Error fetching user data:', error);
-          });
-      }, []); // This empty dependency array ensures the effect runs only once when the component mounts
     }
-  
 
 
+
+
+        
 
     
   
@@ -1390,6 +1429,7 @@ function MessagePage() {
       </div>
       <div id='RightSection'>
       <div id='ReceiverInfo'>
+        To:
              {ReceiverInfo && (
                 <>
                  <div>
@@ -1398,7 +1438,7 @@ function MessagePage() {
                 <div>
                   <div>{ReceiverInfo.fullName}</div>
                   <div>{ReceiverInfo.userId}</div>
-                  <div id='ChatRoomID'></div>
+                  <div id='ChatRoomID'>{ChatRoom}</div>
                 </div>
               </>
   )}
