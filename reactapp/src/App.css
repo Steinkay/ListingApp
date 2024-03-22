@@ -555,29 +555,22 @@ table td {
   margin-bottom: 20px;
 }
 
-label {
+#SellersInfoDiv form label {
   display: block;
   margin-bottom: 5px;
 }
 
-form {
+#SellersInfoDiv form {
   margin-bottom: 20px;
 }
 
-input {
+#SellersInfoDiv form input {
   width: 90%;
   padding: 8px;
   margin-bottom: 10px;
 }
 
-button {
-  background-color: rgb(132, 173, 220);
-  color: #515050;
-  padding: 10px;
-  cursor: pointer;
-  border: none;
-  border-radius: 5px;
-}
+
 
 #MessageApplication {
   display: flex;
@@ -691,4 +684,44 @@ button {
   margin-top: 10px;
   row-gap: 5px;
  display: flex ;
+}
+.ChatDiv {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: white;
+  margin-top: 5%;
+  cursor: pointer;
+}
+.ChatDiv:hover {
+  background-color: rgb(227, 240, 248);
+
+}
+
+.Chat_Sender_Reciver_PhotoDiv {
+  flex: 0 0 auto;
+}
+
+#Chat_Sender_Reciver_Photo {
+  width: 50px; 
+  height: 50px; 
+  border-radius: 50%;
+}
+
+.Chat_DetailsDiv {
+  flex: 1;
+  padding-left: 10px;
+}
+.MessageDate{
+  font-size: 10px;
+}
+
+.Chat_Sender_Reciver_Name {
+}
+
+.Chat_Details {
+  margin-top: 5px;
 }

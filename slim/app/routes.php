@@ -118,12 +118,38 @@ return function (App $app) {
     $app->get('/Messages', function (Request $request, Response $response) {
         // Get the Capsule instance from the container
         $capsule = $this->get(\Illuminate\Database\Capsule\Manager::class);
+    
+        // Extract userId from query parameters
+        $userId = $request->getQueryParams()['userId'] ?? null;
+    
+        // Fetch messages from the 'messages' table for the specified user
+        $messages = $capsule->table('messages')->where('SenderId', $userId)
+                                               ->orWhere('ReceiverId', $userId)
+                                               ->get();
+    
+        // Convert messages to JSON and send the response
+        $response->getBody()->write(json_encode($messages));
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+    
 
-        // Fetch users from the 'siteusers' table
-        $listingsmade = $capsule->table('messages')->get();
-
-        // Convert agents to JSON and send the response
-        $response->getBody()->write(json_encode($listingsmade));
+    
+    $app->get('/CheckChatRoom/{chatRoomId}', function (Request $request, Response $response, $args) {
+        $chatRoomId = $args['chatRoomId'];
+        
+        // Get the Capsule instance from the container
+        $capsule = $this->get(Capsule::class);
+        
+        // Check if a message with the provided chat room ID exists
+        $message = $capsule->table('messages')
+            ->where('MessageRoom', $chatRoomId)
+            ->first();
+        
+        // Determine if the chat room exists
+        $exists = $message !== null;
+        
+        // Respond with a JSON object indicating whether the chat room exists
+        $response->getBody()->write(json_encode(['exists' => $exists]));
         return $response->withHeader('Content-Type', 'application/json');
     });
 
@@ -256,6 +282,9 @@ return function (App $app) {
     });
     
 
+
+
+    
     //Api created to hand password reset
     $app->post('/reset-password', function (Request $request, Response $response, array $args) {
         $data = $request->getParsedBody();
