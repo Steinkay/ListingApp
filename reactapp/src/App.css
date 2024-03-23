@@ -632,13 +632,20 @@ table td {
 /* Assuming you have a container for your messages */
 .Message {
   display: flex;
-  flex-direction: column;
+ 
   margin-bottom: 16px; /* Adjust as needed */
   padding: 16px;
   border: 1px solid #ccc;
   border-radius: 8px;
 }
-
+.Sender_ReceiverPicDiv img{
+  width: 50px;
+  height: 50px;
+  border-radius: 50px;
+}
+.MessageInfoDetailsDiv{
+  padding-left: 5px;
+}
 .Sender_Receiver_Div {
   display: flex;
   align-items: center;
@@ -705,7 +712,7 @@ table td {
   flex: 0 0 auto;
 }
 
-#Chat_Sender_Reciver_Photo {
+#Chat_Sender_Receiver_Photo {
   width: 50px; 
   height: 50px; 
   border-radius: 50%;

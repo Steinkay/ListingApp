@@ -115,22 +115,44 @@ return function (App $app) {
     });
 
     
-    $app->get('/Messages', function (Request $request, Response $response) {
-        // Get the Capsule instance from the container
-        $capsule = $this->get(\Illuminate\Database\Capsule\Manager::class);
-    
-        // Extract userId from query parameters
-        $userId = $request->getQueryParams()['userId'] ?? null;
-    
-        // Fetch messages from the 'messages' table for the specified user
-        $messages = $capsule->table('messages')->where('SenderId', $userId)
-                                               ->orWhere('ReceiverId', $userId)
-                                               ->get();
-    
-        // Convert messages to JSON and send the response
-        $response->getBody()->write(json_encode($messages));
-        return $response->withHeader('Content-Type', 'application/json');
-    });
+   $app->get('/Messages', function (Request $request, Response $response) {
+    // Get the Capsule instance from the container
+    $capsule = $this->get(\Illuminate\Database\Capsule\Manager::class);
+
+    // Extract userId from query parameters
+    $userId = $request->getQueryParams()['userId'] ?? null;
+
+    // Fetch messages from the 'messages' table for the specified user
+    $messages = $capsule->table('messages')->where('SenderId', $userId)
+                                           ->orWhere('ReceiverId', $userId)
+                                           ->get();
+
+    // Convert messages to JSON and send the response
+    $response->getBody()->write(json_encode($messages));
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+$app->get('/MessagesByRoom', function (Request $request, Response $response) {
+    // Get the Capsule instance from the container
+    $capsule = $this->get(\Illuminate\Database\Capsule\Manager::class);
+
+    // Extract chatRoom from query parameters
+    $chatRoom = $request->getQueryParams()['chatRoom'] ?? null;
+
+    // Check if chatRoom parameter is provided
+    if (!$chatRoom) {
+        // If chatRoom is not provided, return a response with an error message
+        $response->getBody()->write(json_encode(['error' => 'chatRoom parameter is required']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    // Fetch messages from the 'messages' table for the specified chatRoom
+    $messages = $capsule->table('messages')->where('MessageRoom', $chatRoom)->get();
+
+    // Convert messages to JSON and send the response
+    $response->getBody()->write(json_encode($messages));
+    return $response->withHeader('Content-Type', 'application/json');
+});
     
 
     

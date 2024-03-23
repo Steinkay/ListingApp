@@ -1320,52 +1320,159 @@ function MessagePage() {
     }
   }
 
-  function Message(props) {
-    return (
-      <div className='Message'>
-        <div className='Sender_Receiver_Div'>
-          <div className='Sender_Receiver_Name'>{props.senderName}</div>
-          <div className='MessageDate'>{props.messageDate}</div>
-        </div>
-        <div className='MessageMedia'></div>
-        <div className='MessageDetails'>{props.text}</div>
+  function Message({ text, messageDate, senderId, receiverId }) {
+  const [userFullName, setUserFullName] = useState('');
+  const [userProfilePhoto, setUserProfilePhoto] = useState('');
+
+  useEffect(() => {
+    const currentUserId = parseInt(localStorage.getItem('userId'), 10);
+    const userId = currentUserId === senderId ? receiverId : senderId;
+    fetchUserDetails(userId);
+  }, [senderId, receiverId]);
+
+  const fetchUserDetails = (userId) => {
+    fetch(`http://localhost:8080/siteuser/${userId}`)
+      .then(response => response.json())
+      .then(data => {
+        const fullName = `${data.FirstName} ${data.LastName}`;
+        setUserFullName(fullName);
+        setUserProfilePhoto(data.ProfilePicture);
+      })
+      .catch(error => {
+        console.error('Error fetching user details:', error);
+      });
+  };
+
+  return (
+    <div className='Message'>
+      <div className='Sender_ReceiverPicDiv'>
+        <img src={userProfilePhoto ? `${process.env.PUBLIC_URL}/ProfilePhotos/${userProfilePhoto}` : `${process.env.PUBLIC_URL}/ProfilePhotos/Profile Icon.png`} alt="Profile"/>    
       </div>
-    );
-  }
+      <div className='MessageInfoDetailsDiv'>
+      <div className='Sender_Receiver_Div'>
+        <div className='Sender_Receiver_Name'>{userFullName}</div>
+        <div className='MessageDate'>{messageDate}</div>
+      </div>
+      <div className='MessageMedia'></div>
+      <div className='MessageDetails'>{text}</div>
+      </div>
+    </div>
+  );
+}
+  
 
-  function Chats() {
-    const { userId } = useParams(); // Get the userId from URL parameters
-    const [chats, setChats] = useState([]);
+function Chats() {
+  const { userId } = useParams();
+  const [chats, setChats] = useState([]);
 
-    useEffect(() => {
-      // Fetch chats for the specific user
-      fetch(`http://localhost:8080/Messages?userId=${userId}`)
-        .then(response => response.json())
-        .then(data => {
-          setChats(data);
-        })
-        .catch(error => {
-          console.error('Error fetching chats:', error);
+  useEffect(() => {
+    // Fetch chats for the specific user
+    fetch(`http://localhost:8080/Messages?userId=${userId}`)
+      .then(response => response.json())
+      .then(async data => {
+        // Group messages by chat room
+        const groupedChats = {};
+        data.forEach(chat => {
+          if (!groupedChats[chat.MessageRoom]) {
+            groupedChats[chat.MessageRoom] = [];
+          }
+          groupedChats[chat.MessageRoom].push(chat);
         });
-    }, [userId]); // Fetch chats whenever userId changes
 
-    const handleChatClick = (userId, chatRoom) => {
-      // Handle chat click as before
-      const url = `/messages/${userId}/${chatRoom}`;
-      window.history.pushState({}, null, url);
-      // Fetch messages for the selected chatRoom...
-    };
+        // Transform grouped chats into array format
+        const chatsArray = Object.entries(groupedChats).map(([MessageRoom, chats]) => ({
+          MessageRoom,
+          Messages: chats
+        }));
 
-    return (
-      <div>
-        {chats.map(chat => (
-          <div key={chat.MessageRoom} className='ChatDiv' onClick={() => handleChatClick(chat.ReceiverId, chat.MessageRoom)}>
-            {/* Render each chat */}
+        // Fetch sender and receiver details for each chat
+        const updatedChats = await Promise.all(chatsArray.map(async chat => {
+          const senderResponse = await fetch(`http://localhost:8080/siteuser/${chat.Messages[0].SenderId}`);
+          const senderData = await senderResponse.json();
+
+          const receiverResponse = await fetch(`http://localhost:8080/siteuser/${chat.Messages[0].ReceiverId}`);
+          const receiverData = await receiverResponse.json();
+        
+          // Construct full names
+          const senderFullName = `${senderData.FirstName} ${senderData.LastName}`;
+          const receiverFullName = `${receiverData.FirstName} ${receiverData.LastName}`;
+
+          // Get details of the latest message
+          const latestMessage = chat.Messages[chat.Messages.length - 1];
+
+          // Update chat object with sender, receiver details, and latest message details
+          return {
+            ...chat,
+            SenderFullName: senderFullName,
+            ReceiverFullName: receiverFullName,
+            SenderProfilePicture: senderData.ProfilePicture,
+            ReceiverProfilePicture: receiverData.ProfilePicture,
+            LatestMessageDetails: latestMessage.MessageDetails,
+            LatestMessageDate: latestMessage.MessageDate
+          };
+        }));
+
+        // Update state with the grouped chats including sender, receiver details, and latest message details
+        setChats(updatedChats);
+      })
+      .catch(error => {
+        console.error('Error fetching chats:', error);
+      });
+  }, [userId]);
+
+  const handleChatClick = (chatRoom) => {
+    const url = `/messages/${userId}/${chatRoom}`;
+    window.history.pushState({}, null, url);
+  
+    // Find the chat corresponding to the clicked chatRoom
+    const clickedChat = chats.find(chat => chat.MessageRoom === chatRoom);
+  
+    // Update ReceiverInfo with the receiver information from the clicked chat
+    if (clickedChat) {
+      setReceiverInfo({
+        img: clickedChat.ReceiverProfilePicture,
+        fullName: clickedChat.ReceiverFullName,
+        userId: clickedChat.ReceiverId,
+      });
+    } else {
+      // Handle case where the clicked chat is not found
+      console.error('Clicked chat not found');
+    }
+  
+    // Fetch messages for the selected chatRoom
+    fetch(`http://localhost:8080/MessagesByRoom?chatRoom=${chatRoom}`)
+      .then(response => response.json())
+      .then(data => {
+        // Update the state to display the fetched messages
+        SetMessages(data);
+      })
+      .catch(error => {
+        console.error('Error fetching message data:', error);
+      });
+  };ss
+
+  return (
+    <div>
+      {chats.map(chat => (
+        <div key={chat.MessageRoom} className='ChatDiv' onClick={() => handleChatClick(chat.MessageRoom)}>
+          <div className='Chat_Sender_Receiver_PhotoDiv'>
+            <img id='Chat_Sender_Receiver_Photo' src={chat.SenderProfilePicture ? `${process.env.PUBLIC_URL}/ProfilePhotos/${chat.SenderProfilePicture}` : `${process.env.PUBLIC_URL}/ProfilePhotos/Profile Icon.png`} alt='Profile' />
           </div>
-        ))}
-      </div>
-    );
-  }
+          <div className='Chat_DetailsDiv'>
+            <div className="Chat_Sender_Receiver_Name">
+              {chat.SenderFullName}
+              <div className='MessageDate'>{chat.LatestMessageDate}</div>
+            </div>
+            <div className='Chat_Details'>
+              <div>{chat.LatestMessageDetails ? (chat.LatestMessageDetails.length > 20 ? `${chat.LatestMessageDetails.substring(0, 20)}...` : chat.LatestMessageDetails) : 'No message details'}</div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 
   function displayUsers() {
     function WhenUserClicked(user) {
@@ -1461,10 +1568,16 @@ function MessagePage() {
         )}
       </div>
       <div id='MessagesDiv'>
-        {Messages.map((message, index) => (
-          <Message key={index} text={message} />
-        ))}
-      </div>
+      {Messages.map((message, index) => (
+  <Message
+    key={index}
+    text={message.MessageDetails}
+    messageDate={message.MessageDate}
+    senderId={message.SenderId}
+    receiverId={message.SenderId}
+  />
+))}
+</div>
       <div id='TextAreaDiv'>
         <div id='TextArea' onInput={GetMessagetext} contentEditable></div>
         <button type='submit' onClick={onSubmit}>
