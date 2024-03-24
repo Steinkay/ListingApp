@@ -585,7 +585,29 @@ table td {
   background-color: #f0f0f0;
   padding: 20px;
 }
-
+#ListOfUsers{
+  z-index: 3px;
+  position: fixed;
+  display: block;
+  background-color:white;
+}
+#ListOfUsers li{
+  margin-top: 3px;
+  background-color: rgb(236, 233, 233);
+  display: flex;
+  width: 100%;
+}
+#ListOfUsers li p{
+  font-size: small;
+ }
+#ListOfUsers li p{
+ font-size: small;
+}
+.SearchedUserPic{
+  width: 20px;
+  height: 20px;
+  border-radius: 20px;
+}
 #RightSection {
   flex: 4;
   display: flex;
@@ -616,12 +638,15 @@ table td {
   width: 100%;
 }
 
-#TextAreaDiv div {
+
+#TextArea {
   flex: 1;
   background-color: #faf9f9;
   width: 90%;
-  height:100px ;
-  
+  min-height:50px ;
+  max-height: 100px;
+  resize: none;
+  padding: 8px;
 }
 
 #TextAreaDiv button {
@@ -652,24 +677,42 @@ table td {
 .Sender_Receiver_Div {
   display: flex;
   align-items: center;
-  margin-bottom: 8px; /* Adjust as needed */
+  margin-bottom: 8px; 
+  width: 80%;
 }
-
+.Sender_ReceiverPic{
+  width: 50px;
+  height: 50px;
+  border-radius: 50px;
+}
+.Sender_Receiver_Name_MessageDetailsDiv{
+  margin-left: 10px;
+}
 .Sender_Receiver_Name {
   font-weight: bold;
-  margin-right: 8px; /* Adjust as needed */
+  margin-right: 8px; 
 }
 
 .MessageMedia {
-  /* Add styling for your media container */
+  
 }
 
 .MessageDetails {
  font: lighter;
  color: grey;
- font-size: 13px;
+ font-size: 14px;
  padding: 2px;
+ margin-top: 2px;
 }
+.MessageDate{
+  font-size: 10px;
+  color: rgb(127, 127, 127);
+  padding: 10px;
+ 
+}
+
+
+
 .LeftSectionChat_Users:hover{
   cursor: pointer;
   background-color:white;

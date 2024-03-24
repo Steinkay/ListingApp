@@ -1275,11 +1275,14 @@ function ChatRoom({ userId, messageRoom }) {
 function MessagePage() {
   const [users, setUsers] = useState([]);
   const [UserMessages, setUserMessages] = useState([]);
-
   const userId = localStorage.getItem('userId');
   const [selectedChatUser, setSelectedChatUser] = useState(null); // State to store information about the selected chat user
-
   const [selectedChatRoomMessages, setSelectedChatRoomMessages] = useState([]);
+  const [UsersChatRoom,SetUsersChatRoom] = useState('');
+  const [SendTo,SetSendTo] = useState();
+  const [newMessage, setNewMessage] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
   
   useEffect(() => {
     // Make an HTTP GET request to fetch user data from the server
@@ -1319,27 +1322,115 @@ function MessagePage() {
       });
   }, [userId]);
 
-  console.log(UserMessages);
+
 
 
   function Message({ message }) {
     // Find sender details
     const sender = users.find(user => user.Id === message.SenderId);
     const senderProfilePhoto = sender && sender.ProfilePicture ? `/ProfilePhotos/${sender.ProfilePicture}` : '/Profile Icon.png';
-
+    const messageDate = new Date(message.MessageDate).toLocaleString(undefined, {
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    });
     return (
       <div className='Message'>
+
         <div className='Sender_Receiver_Div'>
-          <div className='Sender_Receiver_Name'>{sender ? `${sender.FirstName} ${sender.LastName}` : ''}</div>
-          <div className='MessageDate'>{message.MessageDate}</div>
+           <img className='Sender_ReceiverPic' src={senderProfilePhoto} alt='Profile' />
+
+           <div className='Sender_Receiver_Name_MessageDetailsDiv'>
+              <div className='Sender_Receiver_Name'>{sender ? `${sender.FirstName} ${sender.LastName}` : ''}</div>
+              <div className='MessageDetails'>{message.MessageDetails}</div>
+
+           </div>
+
         </div>
-        <div className='MessageMedia'>
-          <img src={senderProfilePhoto} alt='Profile' />
+            <div className='MessageDate'>{messageDate}</div>
         </div>
-        <div className='MessageDetails'>{message.MessageDetails}</div>
-      </div>
     );
   }
+
+
+   //Message object to send to the backend
+  const sendMessage = () => {
+    const messageData = {
+      MessageId: 'Message'+new Date()/1000+new Date().getUTCDate(), 
+      MessageRoom: UsersChatRoom, 
+      SenderId: userId,
+      ReceiverId: SendTo, 
+      MessageDetails: newMessage,
+      MessageDate: new Date().toISOString(),
+      ReadStatus: 'Unread', 
+      Attachments: [] 
+    };
+
+    // Make a POST request to send the message data to the backend
+    axios.post('http://localhost:8080/SendMessages', messageData)
+      .then(response => {
+
+        console.log('Message sent successfully:', response.data);
+
+        setUserMessages(prevMessages => ({
+          ...prevMessages,
+          [UsersChatRoom]: [...prevMessages[UsersChatRoom], messageData]
+        }));
+        setNewMessage('');
+      })
+      .catch(error => {
+  
+        console.error('Error sending message:', error);
+      });
+  };
+
+  // Handler function for sending a message when the send button is clicked
+  const ExecuteSendMessage= () => {
+    // Check if the new message is not empty
+    if (newMessage.trim() !== '') {
+      // Call the function to send the message
+      sendMessage();
+    } else {
+      // Handle empty message input
+      console.warn('Cannot send an empty message.');
+    }
+  };
+
+  const handleUserSearch = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const filteredUsers = users.filter(user => {
+    const fullName = `${user.FirstName} ${user.LastName}`;
+    return fullName.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  const handleUserClick = (user) => {
+    // Check if a chat room already exists between the logged user and the clicked user
+    let chatRoom = `${userId}and${user.Id}`;
+    const reverseChatRoom = `${user.Id}and${userId}`;
+  
+    if (!UserMessages[chatRoom] && UserMessages[reverseChatRoom]) {
+      chatRoom = reverseChatRoom;
+    }
+  
+    // Set the selected user for display in the "To:" section
+    setSelectedChatUser({
+      profilePicture: user.ProfilePicture ? `/ProfilePhotos/${user.ProfilePicture}` : '/Profile Icon.png',
+      fullName: `${user.FirstName} ${user.LastName}`
+    });
+  
+    // Check if there are messages available for the selected chat room
+    const roomMessages = UserMessages[chatRoom];
+    if (roomMessages) {
+      // If messages exist, set them to be displayed in the messages section
+      setSelectedChatRoomMessages(roomMessages);
+    } else {
+      // If no messages exist, initialize an empty array
+      setSelectedChatRoomMessages([]);
+    }
+  
+    // Set the chat room
+    SetUsersChatRoom(chatRoom);
+  };
 
 
 
@@ -1351,13 +1442,18 @@ function MessagePage() {
     const receiverId = latestMessage.ReceiverId;
     const sender = users.find(user => user.Id === senderId);
     const receiver = users.find(user => user.Id === receiverId);
-    const senderProfilePhoto = sender && sender.ProfilePicture ? `/ProfilePhotos/${sender.ProfilePicture}` : '/Profile Icon.png';
-  
+    const receiverProfilePhoto = receiver && receiver.ProfilePicture ? `/ProfilePhotos/${receiver.ProfilePicture}` : '/Profile Icon.png';
+    const { UserId, messageRoom } = useParams();
+
+
     const OnChatDivClick = () => {
+
       let ToUser 
-      if(senderId!==userId){
-        ToUser =senderId 
+      if(receiverId!==userId){
+        ToUser =receiverId 
+        SetSendTo(ToUser)
       }
+      
       // Find the user information of the other user involved in the chat
       const otherUser = users.find(user => user.Id === ToUser);
       if (otherUser) {
@@ -1369,20 +1465,23 @@ function MessagePage() {
       }
 
       setSelectedChatRoomMessages(UserMessages[chatRoom] || []);
-
+      SetUsersChatRoom(chatRoom)
 
     };
+
+
+
   
     
     return (
       <div className='ChatDiv' id={chatRoom} onClick={() => OnChatDivClick()}>
         <div className='ChatDivSender_ReceiverPicDiv'>
-          <img  className = 'ChatDivSender_ReceiverPic' src={senderProfilePhoto} alt='Profile' />
+          <img  className = 'ChatDivSender_ReceiverPic' src={receiverProfilePhoto} alt='Profile' />
         </div>
         <div className='ChatDivMessageInfoDetailsDiv'>
           <div className='ChatDivSender_Receiver_Div'>
             <div className='ChatDivSender_Receiver_Name'>
-              {sender ? `${sender.FirstName} ${sender.LastName}` : ''}
+              {receiver ? `${receiver.FirstName} ${receiver.LastName}` : ''}
             </div>
             <div className='ChatDivMessageDate'>
                 {latestMessage.MessageDate}
@@ -1417,7 +1516,25 @@ function MessagePage() {
             }}
             className='LeftSectionChat_Users'
           >
-            Users
+             Users:
+  <input
+    id='SearchUsersToStart'
+    type='search'
+    placeholder='Search user to chat..'
+    value={searchQuery}
+    onChange={handleUserSearch}
+  />
+  {searchQuery && (
+   <ul id='ListOfUsers'>
+   {filteredUsers.map(user => (
+     <li key={user.Id} onClick={() => handleUserClick(user)}>
+       <img className='SearchedUserPic' src={user.ProfilePicture ? `${process.env.PUBLIC_URL}/ProfilePhotos/${user.ProfilePicture}` : `${process.env.PUBLIC_URL}/ProfilePhotos/Profile Icon.png`} /> 
+       {' '}
+       {user.FirstName} {user.LastName}
+     </li>
+   ))}
+ </ul>
+     )}
           </div>
         </div>
         {Object.entries(UserMessages).map(([chatRoom, messages]) => (
@@ -1439,8 +1556,8 @@ function MessagePage() {
           ))}
         </div>
         <div id='TextAreaDiv'>
-          <div id='TextArea' contentEditable></div>
-          <button type='submit'>Send</button>
+          <textarea id='TextArea'  onChange={e => setNewMessage(e.target.value)}></textarea>
+          <button onClick={ExecuteSendMessage} type='submit'>Send</button>
         </div>
       </div>
     </div>
