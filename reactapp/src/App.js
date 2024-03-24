@@ -54,9 +54,16 @@ function App() {
                   <MessagePage />
                </>
            }
-   />
+          />
+   
+         <Route path="/messages/:userId/:messageRoom" element={
+             <>
+                <Menue setAuthenticated={setAuthenticated} />
+                <ChatRoom userId={localStorage.getItem('userId')} messageRoom='1and22'/>
 
-       
+             </>
+
+         } />
 
 
         <Route path="/buyers_sellers" element={
@@ -1235,278 +1242,156 @@ function EditProfileForm({ userData }) {
   );
 }
 
+function ChatRoom({ userId, messageRoom }) {
+  // State to store messages
+  const [messages, setMessages] = useState([]);
+
+  useEffect(() => {
+    // Make an HTTP GET request to fetch messages based on userId and messageRoom
+    axios.get(`http://localhost:8080/messages/${userId}/${messageRoom}`)
+      .then(response => {
+        // Handle successful response
+        console.log('Messages data received:', response.data);
+        setMessages(response.data);
+        
+        // Automatically click the ChatDiv with id matching messageRoom
+        const chatDiv = document.getElementById(messageRoom);
+        if (chatDiv) {
+          chatDiv.click();
+        }
+      })
+      .catch(error => {
+        // Handle error
+        console.error('Error fetching messages:', error);
+      });
+  }, [userId, messageRoom]);
+
+  return (
+    <MessagePage />
+  );
+}
 
 
 function MessagePage() {
-  const [MessageText, SetMessageText] = useState('');
-  const [Messages, SetMessages] = useState([]);
-  const [Users, GetUsers] = useState([]);
-  const [Sender, GetSender] = useState([]);
-  const [displaySection, setDisplaySection] = useState('Chats');
-  const [LoggedInUserMessages, SetLoggedInUserMessages] = useState([]);
-  const [ReceiverInfo, setReceiverInfo] = useState(null);
-  const [ChatRoom, SetChatRoom] = useState(null);
-  const [reload, setReload] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [UserMessages, setUserMessages] = useState([]);
 
-  useEffect(() => {
-    fetch(`http://localhost:8080/siteuser`)
-      .then(response => response.json())
-      .then(data => {
-        GetSender(data);
-        const sender = data.find(item => item.Id === parseInt(localStorage.getItem('userId'), 10));
-        GetSender(sender);
-        GetUsers(data);
-      })
-      .catch(error => {
-        console.error('Error fetching lister data:', error);
-      });
-  }, []);
+  const userId = localStorage.getItem('userId');
+  const [selectedChatUser, setSelectedChatUser] = useState(null); // State to store information about the selected chat user
 
-  useEffect(() => {
-    fetch(`http://localhost:8080/Messages`)
-      .then(response => response.json())
-      .then(data => {
-        const usersMessages = data.filter(
-          item =>
-            parseInt(item.SenderId, 10) === parseInt(localStorage.getItem('userId'), 10) ||
-            parseInt(item.ReceiverId, 10) === parseInt(localStorage.getItem('userId'), 10)
-        );
-        SetLoggedInUserMessages(usersMessages);
-      })
-      .catch(error => {
-        console.error('Error fetching message data:', error);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (Messages.length > 0 && ReceiverInfo) {
-      const newMessage = {
-        MessageId: 'Message' + (new Date() / 1000) * new Date().getUTCSeconds(),
-        MessageRoom: ChatRoom,
-        SenderId: parseInt(localStorage.getItem('userId'), 10),
-        ReceiverId: ReceiverInfo.userId,
-        MessageDetails: Messages[Messages.length - 1],
-        MessageDate: new Date().toISOString(),
-        Attachments: [],
-      };
-
-      // Send the message to the server
-      fetch('http://localhost:8080/SendMessages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newMessage),
-      })
-        .then(response => response.json())
-        .then(data => {
-          // Handle the response if needed
-          console.log('Message sent successfully:', data);
-        })
-        .catch(error => {
-          console.error('Error sending message:', error);
-        });
-    }
-  }, [Messages, ReceiverInfo]);
-
-  function GetMessagetext(event) {
-    SetMessageText(event.target.innerHTML);
-  }
-
-  function onSubmit() {
-    if (MessageText.trim() !== '') {
-      SetMessages([...Messages, MessageText]);
-      SetMessageText('');
-    }
-  }
-
-  function Message({ text, messageDate, senderId, receiverId }) {
-  const [userFullName, setUserFullName] = useState('');
-  const [userProfilePhoto, setUserProfilePhoto] = useState('');
-
-  useEffect(() => {
-    const currentUserId = parseInt(localStorage.getItem('userId'), 10);
-    const userId = currentUserId === senderId ? receiverId : senderId;
-    fetchUserDetails(userId);
-  }, [senderId, receiverId]);
-
-  const fetchUserDetails = (userId) => {
-    fetch(`http://localhost:8080/siteuser/${userId}`)
-      .then(response => response.json())
-      .then(data => {
-        const fullName = `${data.FirstName} ${data.LastName}`;
-        setUserFullName(fullName);
-        setUserProfilePhoto(data.ProfilePicture);
-      })
-      .catch(error => {
-        console.error('Error fetching user details:', error);
-      });
-  };
-
-  return (
-    <div className='Message'>
-      <div className='Sender_ReceiverPicDiv'>
-        <img src={userProfilePhoto ? `${process.env.PUBLIC_URL}/ProfilePhotos/${userProfilePhoto}` : `${process.env.PUBLIC_URL}/ProfilePhotos/Profile Icon.png`} alt="Profile"/>    
-      </div>
-      <div className='MessageInfoDetailsDiv'>
-      <div className='Sender_Receiver_Div'>
-        <div className='Sender_Receiver_Name'>{userFullName}</div>
-        <div className='MessageDate'>{messageDate}</div>
-      </div>
-      <div className='MessageMedia'></div>
-      <div className='MessageDetails'>{text}</div>
-      </div>
-    </div>
-  );
-}
+  const [selectedChatRoomMessages, setSelectedChatRoomMessages] = useState([]);
   
-
-function Chats() {
-  const { userId } = useParams();
-  const [chats, setChats] = useState([]);
-
   useEffect(() => {
-    // Fetch chats for the specific user
-    fetch(`http://localhost:8080/Messages?userId=${userId}`)
-      .then(response => response.json())
-      .then(async data => {
-        // Group messages by chat room
-        const groupedChats = {};
-        data.forEach(chat => {
-          if (!groupedChats[chat.MessageRoom]) {
-            groupedChats[chat.MessageRoom] = [];
-          }
-          groupedChats[chat.MessageRoom].push(chat);
-        });
-
-        // Transform grouped chats into array format
-        const chatsArray = Object.entries(groupedChats).map(([MessageRoom, chats]) => ({
-          MessageRoom,
-          Messages: chats
-        }));
-
-        // Fetch sender and receiver details for each chat
-        const updatedChats = await Promise.all(chatsArray.map(async chat => {
-          const senderResponse = await fetch(`http://localhost:8080/siteuser/${chat.Messages[0].SenderId}`);
-          const senderData = await senderResponse.json();
-
-          const receiverResponse = await fetch(`http://localhost:8080/siteuser/${chat.Messages[0].ReceiverId}`);
-          const receiverData = await receiverResponse.json();
-        
-          // Construct full names
-          const senderFullName = `${senderData.FirstName} ${senderData.LastName}`;
-          const receiverFullName = `${receiverData.FirstName} ${receiverData.LastName}`;
-
-          // Get details of the latest message
-          const latestMessage = chat.Messages[chat.Messages.length - 1];
-
-          // Update chat object with sender, receiver details, and latest message details
-          return {
-            ...chat,
-            SenderFullName: senderFullName,
-            ReceiverFullName: receiverFullName,
-            SenderProfilePicture: senderData.ProfilePicture,
-            ReceiverProfilePicture: receiverData.ProfilePicture,
-            LatestMessageDetails: latestMessage.MessageDetails,
-            LatestMessageDate: latestMessage.MessageDate
-          };
-        }));
-
-        // Update state with the grouped chats including sender, receiver details, and latest message details
-        setChats(updatedChats);
+    // Make an HTTP GET request to fetch user data from the server
+    axios.get('http://localhost:8080/siteuser')
+      .then(response => {
+        // Handle successful response
+        console.log('User data received:', response.data);
+        setUsers(response.data);
       })
       .catch(error => {
-        console.error('Error fetching chats:', error);
+        // Handle error
+        console.error('Error fetching user data:', error);
+      });
+  }, []);
+
+  useEffect(() => {
+    fetch(`http://localhost:8080/Messages?userId=${userId}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Messages data received:', data);
+        const groupedMessages = {};
+        data.forEach(message => {
+          if (!groupedMessages[message.MessageRoom]) {
+            groupedMessages[message.MessageRoom] = [];
+          }
+          groupedMessages[message.MessageRoom].push(message);
+        });
+        setUserMessages(groupedMessages);
+      })
+      .catch(error => {
+        console.error('Error fetching messages:', error);
       });
   }, [userId]);
 
-  const handleChatClick = (chatRoom) => {
-    const url = `/messages/${userId}/${chatRoom}`;
-    window.history.pushState({}, null, url);
-  
-    // Find the chat corresponding to the clicked chatRoom
-    const clickedChat = chats.find(chat => chat.MessageRoom === chatRoom);
-  
-    // Update ReceiverInfo with the receiver information from the clicked chat
-    if (clickedChat) {
-      setReceiverInfo({
-        img: clickedChat.ReceiverProfilePicture,
-        fullName: clickedChat.ReceiverFullName,
-        userId: clickedChat.ReceiverId,
-      });
-    } else {
-      // Handle case where the clicked chat is not found
-      console.error('Clicked chat not found');
-    }
-  
-    // Fetch messages for the selected chatRoom
-    fetch(`http://localhost:8080/MessagesByRoom?chatRoom=${chatRoom}`)
-      .then(response => response.json())
-      .then(data => {
-        // Update the state to display the fetched messages
-        SetMessages(data);
-      })
-      .catch(error => {
-        console.error('Error fetching message data:', error);
-      });
-  };ss
-
-  return (
-    <div>
-      {chats.map(chat => (
-        <div key={chat.MessageRoom} className='ChatDiv' onClick={() => handleChatClick(chat.MessageRoom)}>
-          <div className='Chat_Sender_Receiver_PhotoDiv'>
-            <img id='Chat_Sender_Receiver_Photo' src={chat.SenderProfilePicture ? `${process.env.PUBLIC_URL}/ProfilePhotos/${chat.SenderProfilePicture}` : `${process.env.PUBLIC_URL}/ProfilePhotos/Profile Icon.png`} alt='Profile' />
-          </div>
-          <div className='Chat_DetailsDiv'>
-            <div className="Chat_Sender_Receiver_Name">
-              {chat.SenderFullName}
-              <div className='MessageDate'>{chat.LatestMessageDate}</div>
-            </div>
-            <div className='Chat_Details'>
-              <div>{chat.LatestMessageDetails ? (chat.LatestMessageDetails.length > 20 ? `${chat.LatestMessageDetails.substring(0, 20)}...` : chat.LatestMessageDetails) : 'No message details'}</div>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+  console.log(UserMessages);
 
 
-  function displayUsers() {
-    function WhenUserClicked(user) {
-      const chatRoom = `${localStorage.getItem('userId')}and${user.Id}`;
-      console.log(chatRoom);
-      window.history.pushState({}, null, `/messages/${chatRoom}`);
-
-      fetch(`http://localhost:8080/CheckChatRoom/${chatRoom}`)
-        .then(response => response.json())
-        .then(data => {
-          if (data.exists) {
-            SetChatRoom(chatRoom);
-          } else {
-            SetChatRoom(`${localStorage.getItem('userId')}and${user.Id}`);
-          }
-        })
-        .catch(error => {
-          console.error('Error checking chat room:', error);
-        });
-
-      setReceiverInfo({
-        img: user.ProfilePicture,
-        fullName: `${user.FirstName} ${user.LastName}`,
-        userId: user.Id,
-      });
-    }
+  function Message({ message }) {
+    // Find sender details
+    const sender = users.find(user => user.Id === message.SenderId);
+    const senderProfilePhoto = sender && sender.ProfilePicture ? `/ProfilePhotos/${sender.ProfilePicture}` : '/Profile Icon.png';
 
     return (
-      <div>
-        {Users.map(user => (
-          <div key={user.Id} className='UserDiv' onClick={() => WhenUserClicked(user)}>
-            {/* Render each user */}
+      <div className='Message'>
+        <div className='Sender_Receiver_Div'>
+          <div className='Sender_Receiver_Name'>{sender ? `${sender.FirstName} ${sender.LastName}` : ''}</div>
+          <div className='MessageDate'>{message.MessageDate}</div>
+        </div>
+        <div className='MessageMedia'>
+          <img src={senderProfilePhoto} alt='Profile' />
+        </div>
+        <div className='MessageDetails'>{message.MessageDetails}</div>
+      </div>
+    );
+  }
+
+
+
+  function ChatRoom({ chatRoom, messages }) {
+    // Get the latest message in the chat room
+    const latestMessage = messages[messages.length - 1];
+    // Find sender and receiver details
+    const senderId = latestMessage.SenderId;
+    const receiverId = latestMessage.ReceiverId;
+    const sender = users.find(user => user.Id === senderId);
+    const receiver = users.find(user => user.Id === receiverId);
+    const senderProfilePhoto = sender && sender.ProfilePicture ? `/ProfilePhotos/${sender.ProfilePicture}` : '/Profile Icon.png';
+  
+    const OnChatDivClick = () => {
+      let ToUser 
+      if(senderId!==userId){
+        ToUser =senderId 
+      }
+      // Find the user information of the other user involved in the chat
+      const otherUser = users.find(user => user.Id === ToUser);
+      if (otherUser) {
+        // Set the information of the other user to be displayed in the "To:" section
+        setSelectedChatUser({
+          profilePicture: otherUser.ProfilePicture ? `/ProfilePhotos/${otherUser.ProfilePicture}` : '/Profile Icon.png',
+          fullName: `${otherUser.FirstName} ${otherUser.LastName}`
+        });
+      }
+
+      setSelectedChatRoomMessages(UserMessages[chatRoom] || []);
+
+
+    };
+  
+    
+    return (
+      <div className='ChatDiv' id={chatRoom} onClick={() => OnChatDivClick()}>
+        <div className='ChatDivSender_ReceiverPicDiv'>
+          <img  className = 'ChatDivSender_ReceiverPic' src={senderProfilePhoto} alt='Profile' />
+        </div>
+        <div className='ChatDivMessageInfoDetailsDiv'>
+          <div className='ChatDivSender_Receiver_Div'>
+            <div className='ChatDivSender_Receiver_Name'>
+              {sender ? `${sender.FirstName} ${sender.LastName}` : ''}
+            </div>
+            <div className='ChatDivMessageDate'>
+                {latestMessage.MessageDate}
+            </div>
           </div>
-        ))}
+          <div className='ChatDivMessageDetails'>
+          {sender ? `${sender.FirstName} ${sender.LastName}`: ''}: {latestMessage.MessageDetails}
+          </div>
+        </div>
       </div>
     );
   }
@@ -1519,10 +1404,8 @@ function Chats() {
             style={{
               padding: '5px',
               cursor: 'pointer',
-              borderBottom: displaySection === 'Chats' ? '2px solid #000' : 'none',
             }}
             className='LeftSectionChat_Users'
-            onClick={() => setDisplaySection('Chats')}
           >
             Chats
           </div>
@@ -1531,64 +1414,38 @@ function Chats() {
             style={{
               padding: '5px',
               cursor: 'pointer',
-              borderBottom: displaySection === 'Users' ? '2px solid #000' : 'none',
             }}
             className='LeftSectionChat_Users'
-            onClick={() => setDisplaySection('Users')}
           >
             Users
           </div>
-       
-          </div>
-      {displaySection === 'Chats' && <Chats />}
-      {displaySection === 'Users' && displayUsers()}
-    </div>
-    <div id='RightSection'>
-      <div id='ReceiverInfo'>
-        To:
-        {ReceiverInfo && (
-          <>
-            <div>
-              <img
-                className='UserPic'
-                src={
-                  ReceiverInfo.img
-                    ? `${process.env.PUBLIC_URL}/ProfilePhotos/${ReceiverInfo.img}`
-                    : `${process.env.PUBLIC_URL}/ProfilePhotos/Profile Icon.png`
-                }
-                alt={`Profile of ${ReceiverInfo.fullName}`}
-              />
-            </div>
-            <div>
-              <div>{ReceiverInfo.fullName}</div>
-              <div>{ReceiverInfo.userId}</div>
-              <div id='ChatRoomID'>{ChatRoom}</div>
-            </div>
-          </>
-        )}
+        </div>
+        {Object.entries(UserMessages).map(([chatRoom, messages]) => (
+          <ChatRoom key={chatRoom} chatRoom={chatRoom} messages={messages} />
+        ))}
       </div>
-      <div id='MessagesDiv'>
-      {Messages.map((message, index) => (
-  <Message
-    key={index}
-    text={message.MessageDetails}
-    messageDate={message.MessageDate}
-    senderId={message.SenderId}
-    receiverId={message.SenderId}
-  />
-))}
-</div>
-      <div id='TextAreaDiv'>
-        <div id='TextArea' onInput={GetMessagetext} contentEditable></div>
-        <button type='submit' onClick={onSubmit}>
-          Send
-        </button>
+      <div id='RightSection'>
+        <div >
+        {selectedChatUser && (
+            <div id='ReceiverInfo'>To:
+              <img id='ReceiverPic' src={selectedChatUser.profilePicture} alt='Profile' />
+              <div  id='ReceiverName'>{selectedChatUser.fullName}</div>
+            </div>
+          )}
+        </div>
+        <div id='MessagesDiv'>
+        {selectedChatRoomMessages.map(message => (
+            <Message key={message.MessageId} message={message} />
+          ))}
+        </div>
+        <div id='TextAreaDiv'>
+          <div id='TextArea' contentEditable></div>
+          <button type='submit'>Send</button>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
 }
-
 
 
 export default App;

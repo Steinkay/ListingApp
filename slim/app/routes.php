@@ -115,22 +115,22 @@ return function (App $app) {
     });
 
     
-   $app->get('/Messages', function (Request $request, Response $response) {
-    // Get the Capsule instance from the container
-    $capsule = $this->get(\Illuminate\Database\Capsule\Manager::class);
-
-    // Extract userId from query parameters
-    $userId = $request->getQueryParams()['userId'] ?? null;
-
-    // Fetch messages from the 'messages' table for the specified user
-    $messages = $capsule->table('messages')->where('SenderId', $userId)
-                                           ->orWhere('ReceiverId', $userId)
-                                           ->get();
-
-    // Convert messages to JSON and send the response
-    $response->getBody()->write(json_encode($messages));
-    return $response->withHeader('Content-Type', 'application/json');
-});
+    $app->get('/Messages', function (Request $request, Response $response) {
+        // Get the Capsule instance from the container
+        $capsule = $this->get(\Illuminate\Database\Capsule\Manager::class);
+    
+        // Extract userId from query parameters
+        $userId = $request->getQueryParams()['userId'] ?? null;
+    
+        // Fetch messages from the 'messages' table for the specified user
+        $messages = $capsule->table('messages')->where('SenderId', $userId)
+                                               ->orWhere('ReceiverId', $userId)
+                                               ->get();
+    
+        // Convert messages to JSON and send the response
+        $response->getBody()->write(json_encode($messages));
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
 $app->get('/MessagesByRoom', function (Request $request, Response $response) {
     // Get the Capsule instance from the container
@@ -155,26 +155,34 @@ $app->get('/MessagesByRoom', function (Request $request, Response $response) {
 });
     
 
+$app->get('/messages/{userId}/{roomId}', function ($request, $response, $args) {
+    $userId = $args['userId'];
     
-    $app->get('/CheckChatRoom/{chatRoomId}', function (Request $request, Response $response, $args) {
-        $chatRoomId = $args['chatRoomId'];
-        
-        // Get the Capsule instance from the container
-        $capsule = $this->get(Capsule::class);
-        
-        // Check if a message with the provided chat room ID exists
-        $message = $capsule->table('messages')
-            ->where('MessageRoom', $chatRoomId)
-            ->first();
-        
-        // Determine if the chat room exists
-        $exists = $message !== null;
-        
-        // Respond with a JSON object indicating whether the chat room exists
-        $response->getBody()->write(json_encode(['exists' => $exists]));
-        return $response->withHeader('Content-Type', 'application/json');
-    });
-
+    // Get the Capsule instance from the container
+    $capsule = $this->get(\Illuminate\Database\Capsule\Manager::class);
+    
+    // Check if a message with the provided userId as SenderId or ReceiverId exists
+    $message = $capsule->table('messages')
+        ->where(function ($query) use ($userId) {
+            $query->where('SenderId', $userId)
+                  ->orWhere('ReceiverId', $userId);
+        })
+        ->first();
+    
+    // Determine if the chat room exists
+    $exists = $message !== null;
+    
+    // If the message exists, get its roomId
+    $roomId = $exists ? $message->MessageRoom : null;
+    
+    // Respond with a JSON object containing the roomId and whether the chat room exists
+    $responseData = [
+        'roomId' => $roomId,
+        'exists' => $exists
+    ];
+    $response->getBody()->write(json_encode($responseData));
+    return $response->withHeader('Content-Type', 'application/json');
+});
     //Handle user signup
     $app->post('/SignUpUser', function (Request $request, Response $response) {
         try {
