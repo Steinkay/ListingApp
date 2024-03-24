@@ -23,12 +23,14 @@ margin-top: -100px;
 }
 #MenueSection{
 display: flex;
-width: fit-content;
 }
+
 ul{
   margin-left:20px ;
   display: flex;
   list-style-type: none;
+  width: 40%;
+
 }
 ul a{
   text-decoration: none;
@@ -40,7 +42,6 @@ ul a:hover{
   color: rgb(255, 255, 255);
 }
 ul a li{
-
   margin-left: 10px;
   cursor: pointer;
 }

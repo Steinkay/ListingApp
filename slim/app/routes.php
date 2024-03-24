@@ -103,6 +103,7 @@ return function (App $app) {
             'ReceiverId' => $data['ReceiverId'],
             'MessageDetails' => $data['MessageDetails'],
             'MessageDate' => $data['MessageDate'],
+            'ReadStatus' => $data['ReadStatus'],
             'Attachments' => json_encode($data['Attachments']), // Store image names as a JSON array
         ]);
 

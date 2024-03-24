@@ -93,43 +93,39 @@ function HomePage({ listings, setAuthenticated }) {
 
 
 
-function Menue({setAuthenticated }) {
-  
+function Menue({ setAuthenticated }) {
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState([]);
+  const userId = localStorage.getItem('userId');
+  const profilePath = `/Profile/${userId}`;
+
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchUserMessages = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/siteuser');
+        const response = await axios.get(`http://localhost:8080/Messages?userId=${userId}`);
+        const unreadMessages = response.data.filter(message => parseInt(message.ReceiverId) === parseInt(userId )&& message.ReadStatus === 'Unread'); 
+        setUnreadMessagesCount(unreadMessages.length);
       } catch (error) {
-        console.error('Error fetching user details:', error);
+        console.error('Error fetching user messages:', error);
       }
     };
-  
-    fetchUserData();
-  }, []);
 
+    fetchUserMessages();
+  }, [userId]);
 
 
   const navigate = useNavigate();
 
-
   const handleLogout = () => {
     setAuthenticated(false);
-  
     localStorage.removeItem('sessionToken');
-  
     navigate('/login');
   };
-    const userId = localStorage.getItem('userId');
-    const profilePath = `/Profile/${userId}`;
-  
 
   return (
     <div id='MenueContainer'>
-       
       <div id='MenueSection'>
         <div id='CompanyLogo'>
-        <a href='/listingfeed'><img src={process.env.PUBLIC_URL + '/Web Icons/Home.png'}
- alt='logo' /></a>
+          <a href='/listingfeed'><img src={process.env.PUBLIC_URL + '/Web Icons/Home.png'} alt='logo' /></a>
         </div>
         <ul id='MenueItemsSection'>
           <a href='/listingfeed'>
@@ -138,27 +134,24 @@ function Menue({setAuthenticated }) {
           <a href={`${profilePath}`}>
             <li id='Profile'>Profile</li>
           </a>
-           <Link to='/buyers_sellers'>
-            <div >Buyers&Sellers</div>
+          <Link to='/buyers_sellers'>
+            <li >Buyers&Sellers</li>
           </Link>
           <Link to={`/messages/${userId}`}>
-           <div>Messages</div>
+            <li >Messages{unreadMessagesCount > 0 && `(${unreadMessagesCount})`}</li>
           </Link>
-       
         </ul>
-      
-      <div id="MenuUserDiv" style={{display:'flex', columnGap:'5px'}}>
-            <img src=''/>
-            <div id='MenuUserName'>{localStorage.getItem('userFullName')}</div>
-            <div id='MenueLogout'  onClick={handleLogout}>Logout</div>
- 
-      </div>
-      </div>
 
-     
+        <div id="MenuUserDiv" style={{ display: 'flex', columnGap: '5px' }}>
+          <img src='' />
+          <div id='MenuUserName'>{localStorage.getItem('userFullName')}</div>
+          <div id='MenueLogout' onClick={handleLogout}>Logout</div>
+        </div>
+      </div>
     </div>
   );
 }
+
 
 
 function FeedContainer() {
@@ -460,7 +453,8 @@ function ListingContainer({ listing }) {
 
   return (
     <div id='FeedContainer'>
-      <div id='Welcome'></div>
+      {loggedInUser && loggedInUser.ProfileType !== 'Buyer' && (
+
       <div id='Poster' onClick={handleCreateListingClick}>
         <div id='PosterButton'>
           <div id='UserImageDiv'>
@@ -470,6 +464,7 @@ function ListingContainer({ listing }) {
           <div id='Listing'>{localStorage.getItem('userFullName')}, click to create a Listing...</div>
         </div>
       </div>
+          )}
       <div>
           <div id='FeedSearchDiv' style={{marginTop:'5%'}}>
               <div>
@@ -1351,33 +1346,38 @@ function MessagePage() {
   }
 
 
-   //Message object to send to the backend
   const sendMessage = () => {
     const messageData = {
-      MessageId: 'Message'+new Date()/1000+new Date().getUTCDate(), 
-      MessageRoom: UsersChatRoom, 
+      MessageId: 'Message' + new Date() / 1000 + new Date().getUTCDate(),
+      MessageRoom: UsersChatRoom,
       SenderId: userId,
-      ReceiverId: SendTo, 
+      ReceiverId: SendTo,
       MessageDetails: newMessage,
       MessageDate: new Date().toISOString(),
-      ReadStatus: 'Unread', 
-      Attachments: [] 
+      ReadStatus: 'Unread',
+      Attachments: []
     };
-
+  
     // Make a POST request to send the message data to the backend
-    axios.post('http://localhost:8080/SendMessages', messageData)
+    axios
+      .post('http://localhost:8080/SendMessages', messageData)
       .then(response => {
-
         console.log('Message sent successfully:', response.data);
-
-        setUserMessages(prevMessages => ({
-          ...prevMessages,
-          [UsersChatRoom]: [...prevMessages[UsersChatRoom], messageData]
-        }));
+  
+        setUserMessages(prevMessages => {
+          // Ensure prevMessages[UsersChatRoom] is always an array
+          const chatRoomMessages = Array.isArray(prevMessages[UsersChatRoom]) ? prevMessages[UsersChatRoom] : [];
+          // Concatenate the new message to the chat room messages
+          const updatedChatRoomMessages = [...chatRoomMessages, messageData];
+          // Return the updated UserMessages state
+          return {
+            ...prevMessages,
+            [UsersChatRoom]: updatedChatRoomMessages
+          };
+        });
         setNewMessage('');
       })
       .catch(error => {
-  
         console.error('Error sending message:', error);
       });
   };
@@ -1407,7 +1407,8 @@ function MessagePage() {
     // Check if a chat room already exists between the logged user and the clicked user
     let chatRoom = `${userId}and${user.Id}`;
     const reverseChatRoom = `${user.Id}and${userId}`;
-  
+    SetSendTo(user.Id)
+
     if (!UserMessages[chatRoom] && UserMessages[reverseChatRoom]) {
       chatRoom = reverseChatRoom;
     }
@@ -1430,6 +1431,7 @@ function MessagePage() {
   
     // Set the chat room
     SetUsersChatRoom(chatRoom);
+    
   };
 
 
@@ -1471,7 +1473,7 @@ function MessagePage() {
 
 
 
-  
+ 
     
     return (
       <div className='ChatDiv' id={chatRoom} onClick={() => OnChatDivClick()}>
