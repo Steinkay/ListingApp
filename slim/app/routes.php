@@ -14,6 +14,9 @@ use App\Services\Functions;
 
 
 return function (App $app) {
+
+
+    
     $app->options('/{routes:.*}', function (Request $request, Response $response) {
         return $response;
         
@@ -70,10 +73,24 @@ return function (App $app) {
         // Get the Capsule instance from the container
         $capsule = $this->get(Capsule::class);
     
+        // Check if 'listings' table exists
+        if (!$capsule->schema()->hasTable('listings')) {
+            // Create 'listings' table if it doesn't exist
+            $capsule->schema()->create('listings', function ($table) {
+                $table->text('ListingId');
+                $table->integer('Lister');
+                $table->text('ListingDescription');
+                $table->longText('Images')->nullable();
+                $table->text('ListingType');
+                $table->text('ListingLocation');
+                $table->text('ListingDate');
+            });
+        }
+    
         // Insert data into 'listings' table
         $capsule->table('listings')->insert([
-            'Lister' => $data['Lister'],
             'ListingId' => $data['ListingId'],
+            'Lister' => $data['Lister'],
             'ListingDescription' => $data['description'],
             'ListingType' => $data['ListingType'],
             'ListingLocation' => $data['ListingLocation'],
@@ -87,35 +104,50 @@ return function (App $app) {
     
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
     });
+    
+//This api sends messages into databse
+$app->post('/SendMessages', function (Request $request, Response $response) {
+    // Access request data
+    $data = $request->getParsedBody();
 
-    $app->post('/SendMessages', function (Request $request, Response $response) {
-        // Access request data
-        $data = $request->getParsedBody();
-    
-        // Get the Capsule instance from the container
-        $capsule = $this->get(Capsule::class);
-    
-        // Insert data into 'listings' table
-        $capsule->table('messages')->insert([
-            'MessageId' => $data['MessageId'],
-            'MessageRoom' => $data['MessageRoom'],
-            'SenderId' => $data['SenderId'],
-            'ReceiverId' => $data['ReceiverId'],
-            'MessageDetails' => $data['MessageDetails'],
-            'MessageDate' => $data['MessageDate'],
-            'ReadStatus' => $data['ReadStatus'],
-            'Attachments' => json_encode($data['Attachments']), // Store image names as a JSON array
-        ]);
+    // Get the Capsule instance from the container
+    $capsule = $this->get(Capsule::class);
 
-    
-        // Return a JSON response indicating success
-        $responseData = ['message' => 'Listing created successfully'];
-        $response->getBody()->write(json_encode($responseData));
-    
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
-    });
+    // Check if 'messages' table exists
+    if (!$capsule->schema()->hasTable('messages')) {
+        // Create 'messages' table if it doesn't exist
+        $capsule->schema()->create('messages', function ($table) {
+            $table->text('MessageId');
+            $table->text('MessageRoom');
+            $table->integer('SenderId');
+            $table->integer('ReceiverId');
+            $table->text('MessageDetails');
+            $table->date('MessageDate');
+            $table->text('ReadStatus');
+            $table->text('Attachments')->nullable();
+        });
+    }
 
-    
+    // Insert data into 'messages' table
+    $capsule->table('messages')->insert([
+        'MessageId' => $data['MessageId'],
+        'MessageRoom' => $data['MessageRoom'],
+        'SenderId' => $data['SenderId'],
+        'ReceiverId' => $data['ReceiverId'],
+        'MessageDetails' => $data['MessageDetails'],
+        'MessageDate' => $data['MessageDate'],
+        'ReadStatus' => $data['ReadStatus'],
+        'Attachments' => json_encode($data['Attachments']), // Store image names as a JSON array
+    ]);
+
+    // Return a JSON response indicating success
+    $responseData = ['message' => 'Message sent successfully'];
+    $response->getBody()->write(json_encode($responseData));
+
+    return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+});
+
+    //This api gets messages from database
     $app->get('/Messages', function (Request $request, Response $response) {
         // Get the Capsule instance from the container
         $capsule = $this->get(\Illuminate\Database\Capsule\Manager::class);
@@ -132,7 +164,33 @@ return function (App $app) {
         $response->getBody()->write(json_encode($messages));
         return $response->withHeader('Content-Type', 'application/json');
     });
+//This Api updates readstatus of messages, showing whether reciever has read message or not
+    $app->post('/UpdateReadStatus', function (Request $request, Response $response) {
+        // Access query parameters
+        $queryParams = $request->getQueryParams();
+        $messageRoom = $queryParams['messageRoom'];
+        $userId = $queryParams['userId'];
+    
+        // Access the database Capsule instance from the container
+        $capsule = $this->get(\Illuminate\Database\Capsule\Manager::class);
+    
+        // Update ReadStatus in the database
+        $affectedRows = $capsule->table('messages')
+            ->where('MessageRoom', $messageRoom)
+            ->where('ReceiverId', $userId)
+            ->update(['ReadStatus' => 'Read']);
+    
+        // Check if any rows were affected
+        if ($affectedRows > 0) {
+            $response->getBody()->write(json_encode(['message' => 'ReadStatus updated successfully']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+        } else {
+            $response->getBody()->write(json_encode(['error' => 'No messages found for the given parameters']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+    });
 
+//This Api gets messages by ChatRoom
 $app->get('/MessagesByRoom', function (Request $request, Response $response) {
     // Get the Capsule instance from the container
     $capsule = $this->get(\Illuminate\Database\Capsule\Manager::class);
@@ -209,7 +267,6 @@ $app->get('/messages/{userId}/{roomId}', function ($request, $response, $args) {
                     $table->string('ProfilePicture');
                     $table->string('Location');
                     $table->string('PasswordResetToken');
-                    // Add other columns as needed
                 });
             }
     
@@ -377,11 +434,15 @@ $app->get('/messages/{userId}/{roomId}', function ($request, $response, $args) {
         return $response;
     });
 
-
+   
 
 
     $app->group('/users', function (Group $group) {
         $group->get('', ListUsersAction::class);
         $group->get('/{id}', ViewUserAction::class);
     });
+
+
+    
 };
+

@@ -440,7 +440,6 @@ function ListingContainer({ listing }) {
       </div>
       <div className='ListingDescription' style={{ marginTop: '1%' }}>{listing.ListingDescription}</div>
       <div className='ListingActionsDiv' style={{ marginTop: '1%' }}>
-         <div>Contact</div>
          <div className='ViewListing'  onClick={() => handleViewListingClick(listing.ListingId)}>
           View Listing
         </div>
@@ -877,11 +876,8 @@ function ViewListing() {
 
   return (
     <>
-      <div id='ListingTitleDiv'>
-        <h2 id='ListingTitle'>Listing Title</h2>
-      </div>
-
-      <div id="ListingDetialsContactContainer">
+      
+      <div id="ListingDetialsContactContainer" style={{marginTop:'6%'}}>
         <div id="ListingDetailsContainerDiv">
           <div id="ListingDetailsContainer">
             <div className="Arrows" id="LeftArrowDiv" onClick={PreviousImageFunction}>
@@ -922,9 +918,9 @@ function ViewListing() {
         <div id="ListingDetailsContactAgentForm">
           <div id="ListingDateTypeLocation">
             <h3>Listing Details</h3>
-            <label><b>ListingType:</b> {' ' + listingDetails.ListingType}</label>
-            <label><b>Location:</b>{' ' + listingDetails.ListingLocation}</label>
-            <label><b>Date:</b>{' ' + formattedDate}</label>
+            <div><b>ListingType:</b>{' ' + listingDetails.ListingType}</div>
+            <div><b>Location:</b>{' ' + listingDetails.ListingLocation}</div>
+            <div><b>ListingType:</b>{' ' + formattedDate}</div>
           </div>
           <h3 id="ViewListinPageTile">Contact </h3>
           <div id='ListerInformation'>
@@ -933,9 +929,16 @@ function ViewListing() {
               src={listerDetails.ProfilePicture ? `${process.env.PUBLIC_URL}/ProfilePhotos/${listerDetails.ProfilePicture}` : `${process.env.PUBLIC_URL}/ProfilePhotos/Profile Icon.png`}
               alt='Profile'
             />
-            <label><b>Name:</b> {' ' + listerDetails.FirstName + ' ' + listerDetails.LastName}</label>
-            <label><b>Email:</b>{' ' + listerDetails.Email}</label>
-            <button>Message</button>
+            <div><b>Name:</b>{' ' + listerDetails.FirstName + ' ' + listerDetails.LastName}</div>
+            <div><b>Email:</b>{' ' + listerDetails.Email}</div>
+            <Link
+  to={{
+    pathname: '/Messages/' + localStorage.getItem('userId'),
+    state: { user: listerDetails }
+  }}
+>
+  <button type='button'>Message</button>
+</Link>
           </div>
         </div>
       </div>
@@ -1045,6 +1048,54 @@ function Buyers_SellersPage() {
   );
 }
 
+function ListingsByUser({ userId }) {
+  const [listings, setListings] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Fetch listings data
+    fetch(`http://localhost:8080/listingsmade`)
+      .then(response => response.json())
+      .then(data => {
+        // Filter listings by userId
+        const filteredListings = data.filter(listing => parseInt(listing.Lister) === parseInt(userId));
+        setListings(filteredListings);
+      })
+      .catch(error => {
+        console.error('Error fetching listings data:', error);
+        // Handle error or redirect to an error page if needed
+      });
+  }, [userId]);
+
+  const handleViewListingClick = (listingId) => {
+    navigate(`/listings/${listingId}`);
+  };
+
+  const truncateDescription = (description, maxLength) => {
+    if (description.length > maxLength) {
+      return description.substring(0, maxLength) + '...';
+    }
+    return description;
+  };
+
+  return (
+    <div className="listings-grid">
+      {listings.map(listing => (
+        <div key={listing.ListingId} onClick={() => handleViewListingClick(listing.ListingId)} className="listing-item">
+          <img
+            src={`${process.env.PUBLIC_URL}/ListingPhotos/${JSON.parse(listing.Images)[0]}`}
+            alt={`Listing Image 1`}
+          />
+          <div className="listing-details">
+            <p className="listing-description">{truncateDescription(listing.ListingDescription, 50)}</p>
+            <p className="listing-location">{listing.ListingLocation}</p>
+            <p className="listing-type">{listing.ListingType}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 function ProfilePage({ setAuthenticated }) {
   const [userData, setUserData] = useState(null);
   const loggedInUserId = localStorage.getItem('userId');
@@ -1071,6 +1122,8 @@ function ProfilePage({ setAuthenticated }) {
   const handleCancelEdit = () => {
     setIsEditClicked(false);
   };
+
+ 
 
   return (
     <>
@@ -1133,19 +1186,16 @@ function ProfilePage({ setAuthenticated }) {
             </div>
             <div id='ListingsByUser'>
                <div><h3>Listings by  {userData.FirstName + ' ' + userData.LastName}</h3></div>
+                <ListingsByUser userId={userIdFromUrl} />
             </div>
           </div>
-          
-          
         ) : (
           <div>Loading...</div>
         )}
-       
       </div>
     </>
   );
 }
-
 function EditProfileForm({ userData }) {
   const [editedData, setEditedData] = useState({
     FirstName: userData.FirstName,
@@ -1429,7 +1479,6 @@ function MessagePage() {
       setSelectedChatRoomMessages([]);
     }
   
-    // Set the chat room
     SetUsersChatRoom(chatRoom);
     
   };
@@ -1437,9 +1486,7 @@ function MessagePage() {
 
 
   function ChatRoom({ chatRoom, messages }) {
-    // Get the latest message in the chat room
     const latestMessage = messages[messages.length - 1];
-    // Find sender and receiver details
     const senderId = latestMessage.SenderId;
     const receiverId = latestMessage.ReceiverId;
     const sender = users.find(user => user.Id === senderId);
@@ -1447,12 +1494,13 @@ function MessagePage() {
     const receiverProfilePhoto = receiver && receiver.ProfilePicture ? `/ProfilePhotos/${receiver.ProfilePicture}` : '/Profile Icon.png';
     const { UserId, messageRoom } = useParams();
 
+    const messageDetailsClass = latestMessage.ReadStatus === 'Unread' ? 'UnreadMessage' : '';
 
     const OnChatDivClick = () => {
 
       let ToUser 
-      if(receiverId!==userId){
-        ToUser =receiverId 
+      if(senderId!==userId){
+        ToUser =senderId 
         SetSendTo(ToUser)
       }
       
@@ -1468,12 +1516,30 @@ function MessagePage() {
 
       setSelectedChatRoomMessages(UserMessages[chatRoom] || []);
       SetUsersChatRoom(chatRoom)
+      updateReadStatus(chatRoom);
 
     };
 
 
+    const updateReadStatus = (messageRoom) => {
+      // Make a POST request to update the ReadStatus to 'Read'
+      axios.post(`http://localhost:8080/UpdateReadStatus?messageRoom=${messageRoom}&userId=${userId}`)
+          .then(response => {
+              console.log('ReadStatus updated successfully:', response.data);
+          })
+          .catch(error => {
+              console.error('Error updating ReadStatus:', error);
+          });
+  };
+  let displayName;
+  if (receiverId === userId) {
+    // Logged-in user is the receiver, display sender's name
+    displayName = `${receiver.FirstName} ${receiver.LastName}`;
+  } else {
+    // Logged-in user is not the receiver, display receiver's name
+    displayName = `${sender.FirstName} ${sender.LastName}`;
+  }
 
- 
     
     return (
       <div className='ChatDiv' id={chatRoom} onClick={() => OnChatDivClick()}>
@@ -1483,15 +1549,15 @@ function MessagePage() {
         <div className='ChatDivMessageInfoDetailsDiv'>
           <div className='ChatDivSender_Receiver_Div'>
             <div className='ChatDivSender_Receiver_Name'>
-              {receiver ? `${receiver.FirstName} ${receiver.LastName}` : ''}
+              {displayName}
             </div>
             <div className='ChatDivMessageDate'>
                 {latestMessage.MessageDate}
             </div>
           </div>
-          <div className='ChatDivMessageDetails'>
-          {sender ? `${sender.FirstName} ${sender.LastName}`: ''}: {latestMessage.MessageDetails}
-          </div>
+          <div className={`ChatDivMessageDetails ${messageDetailsClass}`}>
+        {sender ? `${sender.FirstName} ${sender.LastName}`: ''}: {latestMessage.MessageDetails}
+        </div>
         </div>
       </div>
     );
